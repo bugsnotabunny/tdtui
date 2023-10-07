@@ -32,10 +32,6 @@ impl Road {
     pub fn enemies(&self) -> &Vec<Rc<RefCell<Enemy>>> {
         &self.enemies
     }
-
-    // pub fn enemies_mut(&mut self) -> &mut Vec<Rc<RefCell<Enemy>>> {
-    //     &mut self.enemies
-    // }
 }
 
 impl Update for Road {
