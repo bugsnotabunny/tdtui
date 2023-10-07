@@ -8,6 +8,6 @@ pub struct BasicSpawner {}
 
 impl Spawner for BasicSpawner {
     fn spawn(&self) -> Enemy {
-        Enemy::new(4, 1)
+        Enemy::new(4, 5.0, 0.0)
     }
 }

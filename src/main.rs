@@ -5,32 +5,48 @@ mod enemy;
 mod road;
 mod spawner;
 mod tower;
-
 mod update;
 
 extern crate ncurses;
 
-use tower::Tower;
+use damage::Damage;
 
-use crate::{road::Road, spawner::BasicSpawner, update::Update};
+use crate::{
+    road::{Road, Trajectory},
+    spawner::BasicSpawner,
+    tower::{Tower, TowerPool},
+    update::Update,
+};
 
 struct Game {
     over: bool,
     tick_duration: Duration,
     road: Road,
+    towers: TowerPool,
 }
 
 impl Game {
-    fn new(tick_duration: Duration, frame_duration: Duration) -> Self {
+    fn new(tick_duration: Duration) -> Self {
         Self {
             over: false,
             tick_duration: tick_duration,
-            road: Road::new(20, 5, Box::new(BasicSpawner {})), // !TODO change constant to be a param
+            road: Road::new(
+                Trajectory::new(|t| t.powi(2), |t| t.cos().powi(2)),
+                Box::new(BasicSpawner {}),
+            ),
+            towers: TowerPool::new(),
         }
     }
 
     fn run(&mut self) {
-        self.road.build_tower(2, Tower::new());
+        self.towers.build_tower(Tower::new(
+            Damage {
+                value: 100,
+                kind: damage::DamageType::KINNETIC,
+            },
+            100.0,
+            (5.0, 5.0),
+        ));
         while !self.over {
             thread::sleep(self.tick_duration);
             self.update();
@@ -41,12 +57,14 @@ impl Game {
 
 impl Update for Game {
     fn update(&mut self) {
+        self.towers.choose_targets(&self.road);
+        self.towers.shoot_all();
         self.road.update();
     }
 }
 
 fn main() {
-    let mut game = Game::new(Duration::from_millis(500), Duration::from_millis(50));
+    let mut game = Game::new(Duration::from_millis(1000));
     game.run();
     println!("game over!");
 }

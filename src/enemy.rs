@@ -1,15 +1,19 @@
-use crate::damage::Damage;
+use std::ops::Add;
+
+use crate::{damage::Damage, update::Update};
 
 pub struct Enemy {
     health: u8,
-    speed: u8,
+    speed: f32,
+    position: f32,
 }
 
 impl Enemy {
-    pub fn new(health: u8, speed: u8) -> Self {
+    pub fn new(health: u8, speed: f32, position: f32) -> Self {
         Self {
             health: health,
             speed: speed,
+            position: position,
         }
     }
 
@@ -17,12 +21,12 @@ impl Enemy {
         self.health == 0
     }
 
-    pub fn speed(&self) -> u8 {
-        self.speed
+    pub fn position(&self) -> f32 {
+        self.position
     }
 
-    pub fn health(&self) -> u8 {
-        self.health
+    pub fn move_forward(&mut self, value: f32) {
+        self.position = self.position.add(value);
     }
 
     pub fn take_damage(&mut self, damage: Damage) {
@@ -30,5 +34,14 @@ impl Enemy {
             Some(health) => self.health = health,
             None => self.health = 0,
         }
+        if self.is_dead() {
+            println!("enemy died!");
+        }
+    }
+}
+
+impl Update for Enemy {
+    fn update(&mut self) {
+        self.move_forward(self.speed);
     }
 }

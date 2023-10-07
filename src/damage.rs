@@ -10,5 +10,3 @@ pub struct Damage {
     pub value: u8,
     pub kind: DamageType,
 }
-
-pub trait Projectile {}
