@@ -4,6 +4,7 @@ pub trait Spawner {
     fn spawn(&self) -> Enemy;
 }
 
+#[derive(Default)]
 pub struct BasicSpawner {}
 
 impl Spawner for BasicSpawner {

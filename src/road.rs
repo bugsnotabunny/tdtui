@@ -1,17 +1,17 @@
-use std::{cell::RefCell, rc::Rc, vec::Vec};
+use std::{cell::RefCell, ops::Range, rc::Rc, vec::Vec};
 
-use crate::{enemy::Enemy, spawner::Spawner, update::Update};
+use crate::{enemy::Enemy, spawner::Spawner, trajectory::Trajectory, ui::Drawable, update::Update};
 
 const ROAD_LEN: f32 = 100.0;
 
-pub struct Road {
-    trajectory: Trajectory,
-    spawner: Box<dyn Spawner>,
+pub struct Road<T: Trajectory, S: Spawner> {
+    trajectory: T,
+    spawner: S,
     enemies: Vec<Rc<RefCell<Enemy>>>,
 }
 
-impl Road {
-    pub fn new(trajectory: Trajectory, spawner: Box<dyn Spawner>) -> Self {
+impl<T: Trajectory, S: Spawner> Road<T, S> {
+    pub fn new(trajectory: T, spawner: S) -> Self {
         Self {
             trajectory: trajectory,
             spawner: spawner,
@@ -19,7 +19,7 @@ impl Road {
         }
     }
 
-    pub fn trajectory(&self) -> &Trajectory {
+    pub fn trajectory(&self) -> &T {
         &self.trajectory
     }
 
@@ -34,34 +34,74 @@ impl Road {
     }
 }
 
-impl Update for Road {
+impl<T: Trajectory, S: Spawner> Road<T, S> {
+    fn spawn_new_enemy(&mut self) {
+        let enemy = Rc::new(RefCell::new(self.spawner.spawn()));
+        self.enemies.push(enemy);
+    }
+}
+
+impl<T: Trajectory, S: Spawner> Update for Road<T, S> {
     fn update(&mut self) {
         self.enemies.retain(|enemy| !enemy.borrow().is_dead());
         for enemy in self.enemies.iter_mut() {
             enemy.borrow_mut().update();
         }
-        self.spawn_new_enemy()
+        self.spawn_new_enemy();
     }
 }
 
-impl Road {
-    fn spawn_new_enemy(&mut self) {
-        self.enemies
-            .push(Rc::new(RefCell::new(self.spawner.spawn())))
+use ratatui::{prelude::*, widgets::*};
+
+pub struct RoadDrawable {
+    points: Vec<(f64, f64)>,
+    x_bounds: Range<f64>,
+}
+
+impl RoadDrawable {
+    pub fn new<T: Trajectory, S: Spawner>(road: &Road<T, S>) -> RoadDrawable {
+        let data = Vec::from_iter(
+            (0..100)
+                .map(|x| x as f32 * 1.0)
+                .map(|t| road.trajectory().get_point(t))
+                .map(|(x, y)| (x as f64, y as f64)),
+        );
+
+        let max_x = data.iter().max_by(|a, b| a.0.total_cmp(&b.0)).unwrap().0;
+        let min_x = data.iter().min_by(|a, b| a.0.total_cmp(&b.0)).unwrap().0;
+        let max_y = data.iter().max_by(|a, b| a.1.total_cmp(&b.1)).unwrap().1;
+        let min_y = data.iter().min_by(|a, b| a.1.total_cmp(&b.1)).unwrap().1;
+
+        let x_bounds = min_x..max_x;
+
+        Self {
+            points: data,
+            x_bounds: x_bounds,
+        }
     }
 }
 
-pub struct Trajectory {
-    xf: fn(f32) -> f32,
-    yf: fn(f32) -> f32,
-}
+impl Drawable for RoadDrawable {
+    fn draw(
+        &self,
+        frame: &mut ratatui::Frame<ratatui::prelude::CrosstermBackend<std::io::Stdout>>,
+    ) {
+        let datasets = vec![Dataset::default()
+            .marker(symbols::Marker::Block)
+            .style(Style::default().fg(Color::Green))
+            .graph_type(GraphType::Line)
+            .data(&self.points)];
 
-impl Trajectory {
-    pub fn new(xf: fn(f32) -> f32, yf: fn(f32) -> f32) -> Self {
-        Self { xf: xf, yf: yf }
-    }
+        let chart = Chart::new(datasets)
+            .block(Block::default().borders(Borders::ALL))
+            .x_axis(Axis::default().bounds([self.x_bounds.start, self.x_bounds.end]))
+            .y_axis(Axis::default().bounds([-10.0, 10.0]));
 
-    pub fn get_point(&self, t: f32) -> (f32, f32) {
-        ((self.xf)(t), (self.yf)(t))
+        let main_layout = Layout::default()
+            .direction(Direction::Horizontal)
+            .constraints([Constraint::Percentage(100), Constraint::Percentage(100)])
+            .split(frame.size());
+
+        frame.render_widget(chart, main_layout[0]);
     }
 }

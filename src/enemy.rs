@@ -34,9 +34,6 @@ impl Enemy {
             Some(health) => self.health = health,
             None => self.health = 0,
         }
-        if self.is_dead() {
-            println!("enemy died!");
-        }
     }
 }
 

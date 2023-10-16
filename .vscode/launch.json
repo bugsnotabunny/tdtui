@@ -8,7 +8,7 @@
             "type": "lldb",
             "request": "launch",
             "name": "Debug",
-            "program": "${workspaceFolder}/target/debug/ncurses-td",
+            "program": "${workspaceFolder}/target/debug/tdtui",
             "args": [],
             "cwd": "${workspaceFolder}"
         }

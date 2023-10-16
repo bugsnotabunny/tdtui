@@ -1,70 +1,46 @@
-use std::{thread, time::Duration};
-
 mod damage;
 mod enemy;
+mod game;
 mod road;
 mod spawner;
 mod tower;
+mod trajectory;
+mod ui;
 mod update;
 
-extern crate ncurses;
+use std::{io, thread, time::Duration};
 
-use damage::Damage;
+use noise::Perlin;
+use road::Road;
+use spawner::BasicSpawner;
+use trajectory::NoiseTrajectory;
 
-use crate::{
-    road::{Road, Trajectory},
-    spawner::BasicSpawner,
-    tower::{Tower, TowerPool},
-    update::Update,
-};
+use crate::{damage::Damage, game::GameData, tower::Tower, ui::UI, update::Update};
 
-struct Game {
-    over: bool,
-    tick_duration: Duration,
-    road: Road,
-    towers: TowerPool,
-}
+fn main() -> io::Result<()> {
+    let tick_duration = Duration::from_millis(1000);
 
-impl Game {
-    fn new(tick_duration: Duration) -> Self {
-        Self {
-            over: false,
-            tick_duration: tick_duration,
-            road: Road::new(
-                Trajectory::new(|t| t.powi(2), |t| t.cos().powi(2)),
-                Box::new(BasicSpawner {}),
-            ),
-            towers: TowerPool::new(),
-        }
+    let perlin = Perlin::new(10);
+    let spawner = BasicSpawner::default();
+    let trajectory = NoiseTrajectory::new(&perlin);
+    let road = Road::new(trajectory, spawner);
+    let mut data = GameData::new(road);
+    let mut ui = UI::new()?;
+
+    data.build(Tower::new(
+        Damage {
+            value: 100,
+            kind: damage::DamageType::KINNETIC,
+        },
+        100.0,
+        (5.0, 5.0),
+    ));
+
+    while !data.is_over() {
+        data.update();
+        ui.draw(&data);
+        thread::sleep(tick_duration);
     }
-
-    fn run(&mut self) {
-        self.towers.build_tower(Tower::new(
-            Damage {
-                value: 100,
-                kind: damage::DamageType::KINNETIC,
-            },
-            100.0,
-            (5.0, 5.0),
-        ));
-        while !self.over {
-            thread::sleep(self.tick_duration);
-            self.update();
-            self.over = self.road.is_overrun();
-        }
-    }
-}
-
-impl Update for Game {
-    fn update(&mut self) {
-        self.towers.choose_targets(&self.road);
-        self.towers.shoot_all();
-        self.road.update();
-    }
-}
-
-fn main() {
-    let mut game = Game::new(Duration::from_millis(1000));
-    game.run();
-    println!("game over!");
+    ui.kill()?;
+    Ok(())
 }
