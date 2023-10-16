@@ -11,11 +11,9 @@ mod update;
 
 use std::{
     io,
-    ops::Deref,
     time::{Duration, Instant},
 };
 
-use crossterm::event::{self, Event, KeyCode};
 use input::InputMask;
 use noise::Perlin;
 
