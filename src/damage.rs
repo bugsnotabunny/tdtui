@@ -1,8 +1,6 @@
 #[derive(Clone)]
 pub enum DamageType {
     KINNETIC,
-    EXPLOSIVE,
-    MAGIC,
 }
 
 #[derive(Clone)]

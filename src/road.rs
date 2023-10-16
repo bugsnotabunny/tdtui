@@ -69,7 +69,7 @@ impl RoadDrawable {
             (0..100)
                 .map(|x| x as f32 * 1.0)
                 .map(|t| road.trajectory().get_point(t))
-                .map(|(x, y)| (x as f64, y as f64)),
+                .map(|point| (point.x as f64, point.y as f64)),
         );
 
         Self { points: data }

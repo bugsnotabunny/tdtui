@@ -2,6 +2,7 @@ mod damage;
 mod enemy;
 mod game;
 mod input;
+mod point;
 mod road;
 mod spawner;
 mod tower;
@@ -16,6 +17,7 @@ use std::{
 
 use input::InputMask;
 use noise::Perlin;
+use point::Point;
 
 use crate::{
     damage::Damage,
@@ -117,7 +119,7 @@ fn main() -> io::Result<()> {
             kind: damage::DamageType::KINNETIC,
         },
         100.0,
-        (5.0, 5.0),
+        Point { x: 5.0, y: 5.0 },
     ));
 
     let ui = UI::new()?;

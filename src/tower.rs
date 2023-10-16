@@ -2,11 +2,10 @@ use std::{cell::RefCell, rc::Rc};
 
 use rand::seq::IteratorRandom;
 
-use crate::{damage::Damage, enemy::Enemy, road::Road, spawner::Spawner, trajectory::Trajectory};
-
-pub fn distance(lhs: (f32, f32), rhs: (f32, f32)) -> f32 {
-    ((lhs.0 - rhs.0).powi(2) + (lhs.1 - rhs.1).powi(2)).sqrt()
-}
+use crate::{
+    damage::Damage, enemy::Enemy, point::Point, road::Road, spawner::Spawner,
+    trajectory::Trajectory,
+};
 
 pub struct Aim {
     aim: Option<Rc<RefCell<Enemy>>>,
@@ -22,7 +21,7 @@ impl Aim {
             Some(aimcell) => {
                 let aim = aimcell.borrow();
                 let enemypos = trajectory.get_point(aim.position());
-                !aim.is_dead() && distance(enemypos, tower.position()) < tower.range()
+                !aim.is_dead() && enemypos.distance(&tower.position()) < tower.range()
             }
             None => false,
         }
@@ -50,11 +49,11 @@ pub struct Tower {
     damage: Damage,
     range: f32,
     aim: Aim,
-    position: (f32, f32),
+    position: Point,
 }
 
 impl Tower {
-    pub fn new(damage: Damage, radius: f32, position: (f32, f32)) -> Self {
+    pub fn new(damage: Damage, radius: f32, position: Point) -> Self {
         Self {
             damage: damage,
             range: radius,
@@ -63,8 +62,8 @@ impl Tower {
         }
     }
 
-    pub fn position(&self) -> (f32, f32) {
-        self.position
+    pub fn position(&self) -> &Point {
+        &self.position
     }
 
     pub fn range(&self) -> f32 {
@@ -89,7 +88,7 @@ impl Tower {
             .iter()
             .filter(|enemy| {
                 let enemypos = road.trajectory().get_point(enemy.borrow().position());
-                distance(enemypos, self.position) < self.range
+                enemypos.distance(&self.position) < self.range
             })
             .map(|rc| rc.clone())
             .choose(&mut rand::thread_rng());
