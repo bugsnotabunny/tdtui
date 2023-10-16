@@ -1,6 +1,12 @@
 use std::{cell::RefCell, ops::Range, rc::Rc, vec::Vec};
 
-use crate::{enemy::Enemy, spawner::Spawner, trajectory::Trajectory, ui::Drawable, update::Update};
+use crate::{
+    enemy::Enemy,
+    spawner::Spawner,
+    trajectory::Trajectory,
+    ui::{Camera, Drawable},
+    update::Update,
+};
 
 const ROAD_LEN: f32 = 100.0;
 
@@ -69,8 +75,6 @@ impl RoadDrawable {
 
         let max_x = data.iter().max_by(|a, b| a.0.total_cmp(&b.0)).unwrap().0;
         let min_x = data.iter().min_by(|a, b| a.0.total_cmp(&b.0)).unwrap().0;
-        let max_y = data.iter().max_by(|a, b| a.1.total_cmp(&b.1)).unwrap().1;
-        let min_y = data.iter().min_by(|a, b| a.1.total_cmp(&b.1)).unwrap().1;
 
         let x_bounds = min_x..max_x;
 
@@ -85,6 +89,7 @@ impl Drawable for RoadDrawable {
     fn draw(
         &self,
         frame: &mut ratatui::Frame<ratatui::prelude::CrosstermBackend<std::io::Stdout>>,
+        camera: &Camera,
     ) {
         let datasets = vec![Dataset::default()
             .marker(symbols::Marker::Block)
@@ -92,10 +97,17 @@ impl Drawable for RoadDrawable {
             .graph_type(GraphType::Line)
             .data(&self.points)];
 
+        let range = (frame.size().width as f32 / 10.0).floor();
+
         let chart = Chart::new(datasets)
-            .block(Block::default().borders(Borders::ALL))
-            .x_axis(Axis::default().bounds([self.x_bounds.start, self.x_bounds.end]))
-            .y_axis(Axis::default().bounds([-10.0, 10.0]));
+            // .block(Block::default().borders(Borders::ALL))
+            .x_axis(Axis::default().bounds([
+                camera.position().0 as f64,
+                (camera.position().0 + range * camera.scale()) as f64,
+            ]))
+            .y_axis(
+                Axis::default().bounds([-5.0 * camera.scale() as f64, 5.0 * camera.scale() as f64]),
+            );
 
         let main_layout = Layout::default()
             .direction(Direction::Horizontal)

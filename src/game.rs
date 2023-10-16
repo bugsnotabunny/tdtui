@@ -3,7 +3,7 @@ use crate::{
     spawner::Spawner,
     tower::Tower,
     trajectory::Trajectory,
-    ui::Drawable,
+    ui::{Camera, Drawable},
     update::Update,
 };
 
@@ -43,9 +43,9 @@ use ratatui::{prelude::CrosstermBackend, Frame};
 use std::io::Stdout;
 
 impl<T: Trajectory, S: Spawner> Drawable for GameData<T, S> {
-    fn draw(&self, frame: &mut Frame<CrosstermBackend<Stdout>>) {
+    fn draw(&self, frame: &mut Frame<CrosstermBackend<Stdout>>, camera: &Camera) {
         let road_drawable = RoadDrawable::new(&self.road);
-        road_drawable.draw(frame);
+        road_drawable.draw(frame, camera);
         // self.towers().draw(frame);
     }
 }
