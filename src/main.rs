@@ -15,7 +15,7 @@ use road::Road;
 use spawner::BasicSpawner;
 use trajectory::NoiseTrajectory;
 
-use crate::{damage::Damage, game::GameData, tower::Tower, ui::UI, update::Update};
+use crate::{damage::Damage, game::Game, tower::Tower, ui::UI, update::Update};
 
 fn main() -> io::Result<()> {
     let tick_duration = Duration::from_millis(1000);
@@ -24,10 +24,11 @@ fn main() -> io::Result<()> {
     let spawner = BasicSpawner::default();
     let trajectory = NoiseTrajectory::new(&perlin);
     let road = Road::new(trajectory, spawner);
-    let mut data = GameData::new(road);
+
+    let mut game = Game::new(road);
     let mut ui = UI::new()?;
 
-    data.build(Tower::new(
+    game.build(Tower::new(
         Damage {
             value: 100,
             kind: damage::DamageType::KINNETIC,
@@ -36,9 +37,9 @@ fn main() -> io::Result<()> {
         (5.0, 5.0),
     ));
 
-    while !data.is_over() {
-        data.update();
-        ui.draw(&data);
+    while !game.is_over() {
+        game.update();
+        ui.draw(&game);
         thread::sleep(tick_duration);
     }
     ui.kill()?;

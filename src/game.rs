@@ -7,12 +7,12 @@ use crate::{
     update::Update,
 };
 
-pub struct GameData<T: Trajectory, S: Spawner> {
+pub struct Game<T: Trajectory, S: Spawner> {
     road: Road<T, S>,
     towers: Vec<Tower>,
 }
 
-impl<T: Trajectory, S: Spawner> GameData<T, S> {
+impl<T: Trajectory, S: Spawner> Game<T, S> {
     pub fn new(road: Road<T, S>) -> Self {
         Self {
             road: road,
@@ -29,7 +29,7 @@ impl<T: Trajectory, S: Spawner> GameData<T, S> {
     }
 }
 
-impl<T: Trajectory, S: Spawner> Update for GameData<T, S> {
+impl<T: Trajectory, S: Spawner> Update for Game<T, S> {
     fn update(&mut self) {
         self.road.update();
         for tower in self.towers.iter_mut() {
@@ -42,7 +42,7 @@ impl<T: Trajectory, S: Spawner> Update for GameData<T, S> {
 use ratatui::{prelude::CrosstermBackend, Frame};
 use std::io::Stdout;
 
-impl<T: Trajectory, S: Spawner> Drawable for GameData<T, S> {
+impl<T: Trajectory, S: Spawner> Drawable for Game<T, S> {
     fn draw(&self, frame: &mut Frame<CrosstermBackend<Stdout>>, camera: &Camera) {
         let road_drawable = RoadDrawable::new(&self.road);
         road_drawable.draw(frame, camera);
