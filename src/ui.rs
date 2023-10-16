@@ -67,7 +67,16 @@ impl UI {
         Ok(())
     }
 
-    pub fn draw(&mut self, data: &impl Drawable) {
-        let _ = self.terminal.draw(|frame| data.draw(frame, &self.camera));
+    pub fn draw(&mut self, data: &impl Drawable) -> io::Result<()> {
+        self.terminal.draw(|frame| data.draw(frame, &self.camera))?;
+        Ok(())
+    }
+
+    pub fn camera(&self) -> &Camera {
+        &self.camera
+    }
+
+    pub fn camera_mut(&mut self) -> &mut Camera {
+        &mut self.camera
     }
 }
