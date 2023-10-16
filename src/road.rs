@@ -1,4 +1,4 @@
-use std::{cell::RefCell, ops::Range, rc::Rc, vec::Vec};
+use std::{cell::RefCell, rc::Rc, vec::Vec};
 
 use crate::{
     enemy::Enemy,
@@ -61,7 +61,6 @@ use ratatui::{prelude::*, widgets::*};
 
 pub struct RoadDrawable {
     points: Vec<(f64, f64)>,
-    x_bounds: Range<f64>,
 }
 
 impl RoadDrawable {
@@ -73,15 +72,7 @@ impl RoadDrawable {
                 .map(|(x, y)| (x as f64, y as f64)),
         );
 
-        let max_x = data.iter().max_by(|a, b| a.0.total_cmp(&b.0)).unwrap().0;
-        let min_x = data.iter().min_by(|a, b| a.0.total_cmp(&b.0)).unwrap().0;
-
-        let x_bounds = min_x..max_x;
-
-        Self {
-            points: data,
-            x_bounds: x_bounds,
-        }
+        Self { points: data }
     }
 }
 
