@@ -52,13 +52,17 @@ pub trait Drawable {
 
 impl UI {
     pub fn new() -> io::Result<Self> {
-        enable_raw_mode()?;
-        stdout().execute(EnterAlternateScreen)?;
         let terminal = Terminal::new(CrosstermBackend::new(stdout()))?;
         Ok(Self {
             camera: Camera::default(),
             terminal: terminal,
         })
+    }
+
+    pub fn init(&mut self) -> io::Result<()> {
+        enable_raw_mode()?;
+        stdout().execute(EnterAlternateScreen)?;
+        Ok(())
     }
 
     pub fn kill(&mut self) -> io::Result<()> {

@@ -83,7 +83,7 @@ impl Drawable for RoadDrawable {
         camera: &Camera,
     ) {
         let datasets = vec![Dataset::default()
-            .marker(symbols::Marker::Block)
+            .marker(symbols::Marker::Braille)
             .style(Style::default().fg(Color::Green))
             .graph_type(GraphType::Line)
             .data(&self.points)];
