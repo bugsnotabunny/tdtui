@@ -3,11 +3,11 @@ use crate::{damage::Damage, update::Update};
 pub struct Enemy {
     health: u8,
     speed: f32,
-    position: Point,
+    position: f32,
 }
 
 impl Enemy {
-    pub fn new(health: u8, speed: f32, position: Point) -> Self {
+    pub fn new(health: u8, speed: f32, position: f32) -> Self {
         Self {
             health: health,
             speed: speed,
@@ -19,7 +19,7 @@ impl Enemy {
         self.health == 0
     }
 
-    pub fn position(&self) -> &Point {
+    pub fn position(&self) -> &f32 {
         &self.position
     }
 
