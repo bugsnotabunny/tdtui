@@ -1,5 +1,3 @@
-use std::ops::Add;
-
 use crate::{damage::Damage, update::Update};
 
 pub struct Enemy {
@@ -26,7 +24,7 @@ impl Enemy {
     }
 
     pub fn move_forward(&mut self, value: f32) {
-        self.position = self.position.add(value);
+        self.position += value;
     }
 
     pub fn take_damage(&mut self, damage: Damage) {
