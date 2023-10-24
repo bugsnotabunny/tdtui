@@ -115,7 +115,7 @@ fn main() -> io::Result<()> {
 
     model.build(Tower::new(
         Damage {
-            value: 100,
+            value: 1,
             kind: damage::DamageType::KINNETIC,
         },
         100.0,

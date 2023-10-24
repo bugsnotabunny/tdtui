@@ -6,6 +6,8 @@ use crossterm::{
 };
 use ratatui::prelude::*;
 
+use crate::{game::GameModel, spawner::Spawner, trajectory::Trajectory};
+
 pub struct Camera {
     position: (f32, f32),
     scale: f32,
@@ -14,15 +16,35 @@ pub struct Camera {
 impl Default for Camera {
     fn default() -> Self {
         Self {
-            position: (0.0, 0.0),
+            position: (0.0, -10.0),
             scale: 1.0,
         }
     }
 }
 
 impl Camera {
+    pub fn main_layout(&self) -> Layout {
+        Layout::default()
+            .direction(Direction::Horizontal)
+            .constraints([Constraint::Percentage(100), Constraint::Percentage(100)])
+    }
+
     pub fn scale(&self) -> f32 {
         self.scale
+    }
+
+    pub fn x_bounds(&self, frame_w: u16) -> [f64; 2] {
+        [
+            self.position().0 as f64,
+            (self.position().0 + frame_w as f32 * self.scale()) as f64,
+        ]
+    }
+
+    pub fn y_bounds(&self, frame_h: u16) -> [f64; 2] {
+        [
+            self.position().1 as f64,
+            (self.position().1 + frame_h as f32 * self.scale()) as f64,
+        ]
     }
 
     pub fn position(&self) -> (f32, f32) {
@@ -46,8 +68,13 @@ pub struct UI {
     camera: Camera,
 }
 
-pub trait Drawable {
-    fn draw(&self, frame: &mut Frame<CrosstermBackend<Stdout>>, camera: &Camera);
+pub trait Drawable<T: Trajectory, S: Spawner> {
+    fn draw(
+        &self,
+        frame: &mut Frame<CrosstermBackend<Stdout>>,
+        camera: &Camera,
+        game_model: &GameModel<T, S>,
+    );
 }
 
 impl UI {
@@ -71,8 +98,9 @@ impl UI {
         Ok(())
     }
 
-    pub fn draw(&mut self, data: &impl Drawable) -> io::Result<()> {
-        self.terminal.draw(|frame| data.draw(frame, &self.camera))?;
+    pub fn draw<T: Trajectory, S: Spawner>(&mut self, data: &GameModel<T, S>) -> io::Result<()> {
+        self.terminal
+            .draw(|frame| data.draw(frame, &self.camera, data))?;
         Ok(())
     }
 

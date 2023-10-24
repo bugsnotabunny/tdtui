@@ -27,6 +27,10 @@ impl<T: Trajectory, S: Spawner> GameModel<T, S> {
     pub fn is_over(&self) -> bool {
         self.road.is_overrun()
     }
+
+    pub fn road(&self) -> &Road<T, S> {
+        &self.road
+    }
 }
 
 impl<T: Trajectory, S: Spawner> Update for GameModel<T, S> {
@@ -42,10 +46,19 @@ impl<T: Trajectory, S: Spawner> Update for GameModel<T, S> {
 use ratatui::{prelude::CrosstermBackend, Frame};
 use std::io::Stdout;
 
-impl<T: Trajectory, S: Spawner> Drawable for GameModel<T, S> {
-    fn draw(&self, frame: &mut Frame<CrosstermBackend<Stdout>>, camera: &Camera) {
+impl<T: Trajectory, S: Spawner> Drawable<T, S> for GameModel<T, S> {
+    fn draw(
+        &self,
+        frame: &mut Frame<CrosstermBackend<Stdout>>,
+        camera: &Camera,
+        _: &GameModel<T, S>,
+    ) {
         let road_drawable = RoadDrawable::new(&self.road);
-        road_drawable.draw(frame, camera);
+        road_drawable.draw(frame, camera, &self);
+
+        for enemy in self.road.enemies().iter() {
+            enemy.borrow().draw(frame, camera, &self);
+        }
         // self.towers().draw(frame);
     }
 }

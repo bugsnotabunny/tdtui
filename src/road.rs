@@ -2,6 +2,7 @@ use std::{cell::RefCell, rc::Rc, vec::Vec};
 
 use crate::{
     enemy::Enemy,
+    game::GameModel,
     spawner::Spawner,
     trajectory::Trajectory,
     ui::{Camera, Drawable},
@@ -77,11 +78,12 @@ impl RoadDrawable {
     }
 }
 
-impl Drawable for RoadDrawable {
+impl<T: Trajectory, S: Spawner> Drawable<T, S> for RoadDrawable {
     fn draw(
         &self,
         frame: &mut ratatui::Frame<ratatui::prelude::CrosstermBackend<std::io::Stdout>>,
         camera: &Camera,
+        _: &GameModel<T, S>,
     ) {
         let datasets = vec![Dataset::default()
             .marker(symbols::Marker::Braille)
@@ -89,23 +91,13 @@ impl Drawable for RoadDrawable {
             .graph_type(GraphType::Line)
             .data(&self.points)];
 
-        let range = (frame.size().width as f32 / 10.0).floor();
+        let frame_w = frame.size().width;
+        let frame_h = frame.size().height;
 
         let chart = Chart::new(datasets)
-            // .block(Block::default().borders(Borders::ALL))
-            .x_axis(Axis::default().bounds([
-                camera.position().0 as f64,
-                (camera.position().0 + range * camera.scale()) as f64,
-            ]))
-            .y_axis(
-                Axis::default().bounds([-5.0 * camera.scale() as f64, 5.0 * camera.scale() as f64]),
-            );
+            .x_axis(Axis::default().bounds(camera.x_bounds(frame_w)))
+            .y_axis(Axis::default().bounds(camera.y_bounds(frame_h)));
 
-        let main_layout = Layout::default()
-            .direction(Direction::Horizontal)
-            .constraints([Constraint::Percentage(100), Constraint::Percentage(100)])
-            .split(frame.size());
-
-        frame.render_widget(chart, main_layout[0]);
+        frame.render_widget(chart, camera.main_layout().split(frame.size())[0]);
     }
 }
