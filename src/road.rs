@@ -50,8 +50,9 @@ impl<T: Trajectory, S: Spawner> Road<T, S> {
 impl<T: Trajectory, S: Spawner> Update for Road<T, S> {
     fn update(&mut self) {
         self.enemies.retain(|enemy| !enemy.borrow().is_dead());
-        for enemy in self.enemies.iter_mut() {
-            enemy.borrow_mut().update();
+
+        for enemy in self.enemies.iter() {
+            enemy.borrow_mut().move_forward(self.trajectory());
         }
         self.spawn_new_enemy();
     }

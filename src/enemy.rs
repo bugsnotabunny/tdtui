@@ -1,4 +1,4 @@
-use crate::{damage::Damage, update::Update};
+use crate::{damage::Damage, trajectory::Trajectory, ui::Drawable, update::Update};
 
 pub struct Enemy {
     health: u8,
@@ -19,12 +19,31 @@ impl Enemy {
         self.health == 0
     }
 
-    pub fn position(&self) -> &f32 {
-        &self.position
+    pub fn position(&self) -> f32 {
+        self.position
     }
 
-    pub fn move_forward(&mut self, value: f32) {
-        self.position += value;
+    pub fn move_forward(&mut self, trajectory: &impl Trajectory) {
+        const INITIAL_STEP: f32 = 1e-2;
+        const EPSILON_MULTIPLYER: f32 = 1e2;
+        const EPSILON: f32 = f32::EPSILON * EPSILON_MULTIPLYER;
+
+        let mut move_points = self.speed;
+        let mut step = INITIAL_STEP;
+        while move_points > EPSILON {
+            let t_to_move_to = self.position + step;
+            let self_pos = trajectory.get_point(self.position);
+            let point_to_move_to = trajectory.get_point(t_to_move_to);
+            let distance = self_pos.distance(&point_to_move_to);
+
+            if distance > move_points {
+                step /= 2.0;
+                continue;
+            }
+
+            move_points -= step;
+            self.position += step;
+        }
     }
 
     pub fn take_damage(&mut self, damage: Damage) {
@@ -35,8 +54,11 @@ impl Enemy {
     }
 }
 
-impl Update for Enemy {
-    fn update(&mut self) {
-        self.move_forward(self.speed);
+impl Drawable for Enemy {
+    fn draw(
+        &self,
+        _: &mut ratatui::Frame<ratatui::prelude::CrosstermBackend<std::io::Stdout>>,
+        _: &crate::ui::Camera,
+    ) {
     }
 }
