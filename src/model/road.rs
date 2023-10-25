@@ -34,7 +34,7 @@ impl<T: Trajectory, S: Spawner> Road for ConcreteRoad<T, S> {
             enemy.borrow_mut().on_update(delta_time, &self.trajectory);
         }
 
-        self.spawn_new_enemy();
+        self.maybe_spawn_new_enemy();
     }
 
     fn trajectory(&self) -> &dyn Trajectory {
@@ -53,8 +53,14 @@ impl<T: Trajectory, S: Spawner> Road for ConcreteRoad<T, S> {
 }
 
 impl<T: Trajectory, S: Spawner> ConcreteRoad<T, S> {
-    fn spawn_new_enemy(&mut self) {
-        let enemy = Rc::new(RefCell::new(self.spawner.spawn()));
-        self.enemies.push(enemy);
+    fn maybe_spawn_new_enemy(&mut self) -> bool {
+        match self.spawner.maybe_spawn() {
+            Some(enemy) => {
+                let enemy = Rc::new(RefCell::new(enemy));
+                self.enemies.push(enemy);
+                true
+            }
+            None => false,
+        }
     }
 }

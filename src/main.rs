@@ -10,7 +10,7 @@ use model::{
     damage::{Damage, DamageType},
     point::Point,
     road::ConcreteRoad,
-    spawner::BasicSpawner,
+    spawner::SpawnerWithCooldown,
     tower::Tower,
     trajectory::NoiseTrajectory,
 };
@@ -75,7 +75,7 @@ fn main() -> io::Result<()> {
     let tick_duration = Duration::from_millis(100);
 
     let perlin = Perlin::new(10);
-    let spawner = BasicSpawner::default();
+    let spawner = SpawnerWithCooldown::new(Duration::from_secs_f32(1.0));
     let trajectory = NoiseTrajectory::new(&perlin);
     let road = ConcreteRoad::new(trajectory, spawner);
     let mut model = ConcreteGameModel::new(road);

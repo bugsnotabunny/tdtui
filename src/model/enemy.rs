@@ -33,7 +33,7 @@ impl Enemy {
     }
 
     fn move_forward(&mut self, delta_time: Duration, trajectory: &dyn Trajectory) {
-        const INITIAL_STEP: f32 = 1e-2;
+        const INITIAL_STEP: f32 = 1e-3;
         const EPSILON_MULTIPLYER: f32 = 1e2;
         const EPSILON: f32 = f32::EPSILON * EPSILON_MULTIPLYER;
 
