@@ -20,12 +20,12 @@ impl HandleEvents for Camera {
             }
             InputMask::UpPressed => {
                 let mut pos = self.position();
-                pos.1 -= SCROLL;
+                pos.1 += SCROLL;
                 self.set_position(pos);
             }
             InputMask::DownPressed => {
                 let mut pos = self.position();
-                pos.1 += SCROLL;
+                pos.1 -= SCROLL;
                 self.set_position(pos);
             }
             InputMask::ScaleDownPressed => {
