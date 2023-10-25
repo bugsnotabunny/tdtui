@@ -57,25 +57,25 @@ pub fn poll_events(timeout: Duration) -> io::Result<InputMask> {
                 } => maybe_set(&mut result, key, InputMask::LeftPressed),
 
                 KeyEvent {
-                    code: KeyCode::Char(']'),
+                    code: KeyCode::Char('w'),
                     modifiers: _,
                     kind: _,
                     state: _,
                 } => maybe_set(&mut result, key, InputMask::UpPressed),
                 KeyEvent {
-                    code: KeyCode::Char('['),
+                    code: KeyCode::Char('s'),
                     modifiers: _,
                     kind: _,
                     state: _,
                 } => maybe_set(&mut result, key, InputMask::DownPressed),
                 KeyEvent {
-                    code: KeyCode::Char('w'),
+                    code: KeyCode::Char('z'),
                     modifiers: _,
                     kind: _,
                     state: _,
                 } => maybe_set(&mut result, key, InputMask::ScaleUpPressed),
                 KeyEvent {
-                    code: KeyCode::Char('s'),
+                    code: KeyCode::Char('x'),
                     modifiers: _,
                     kind: _,
                     state: _,
@@ -97,4 +97,8 @@ fn maybe_set(inputs: &mut InputMask, key: KeyEvent, to_set: InputMask) {
         }
         KeyEventKind::Repeat => {}
     }
+}
+
+pub trait HandleEvents {
+    fn handle(&mut self, events: InputMask);
 }

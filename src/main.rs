@@ -3,7 +3,7 @@ pub mod input;
 pub mod model;
 pub mod ui;
 
-use input::{poll_events, InputMask};
+use input::core::{poll_events, HandleEvents, InputMask};
 use model::{
     clock::Clock,
     core::{ConcreteGameModel, GameModel},
@@ -17,9 +17,6 @@ use model::{
 use ui::core::{Camera, Screen};
 
 use noise::Perlin;
-
-const SCROLL: f32 = 1.0;
-const SCALE_SCROLL: f32 = 0.1;
 
 struct App<G: GameModel> {
     game_model: G,
@@ -64,33 +61,13 @@ impl<G: GameModel> App<G> {
         Ok(())
     }
 
-    fn handle_events(&mut self, inputs: InputMask) {
-        match inputs {
+    fn handle_events(&mut self, events: InputMask) {
+        match events {
             InputMask::Quitted => self.keep_going = false,
-            InputMask::RightPressed => {
-                let mut pos = self.camera.position();
-                pos.0 += SCROLL;
-                self.camera.set_position(pos);
-            }
-            InputMask::LeftPressed => {
-                let mut pos = self.camera.position();
-                pos.0 -= SCROLL;
-                self.camera.set_position(pos);
-            }
-            InputMask::UpPressed => {}
-            InputMask::DownPressed => {}
-            InputMask::ScaleDownPressed => {
-                let scale = self.camera.scale();
-                if scale > SCALE_SCROLL {
-                    self.camera.set_scale(scale - SCALE_SCROLL);
-                }
-            }
-            InputMask::ScaleUpPressed => {
-                let scale = self.camera.scale();
-                self.camera.set_scale(scale + SCALE_SCROLL);
-            }
             _ => {}
         }
+
+        self.camera.handle(events);
     }
 }
 
