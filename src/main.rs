@@ -1,7 +1,4 @@
-use std::{
-    io,
-    time::{Duration, Instant},
-};
+use std::{io, time::Duration};
 pub mod input;
 pub mod model;
 pub mod ui;
