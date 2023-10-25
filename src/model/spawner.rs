@@ -1,4 +1,4 @@
-use crate::enemy::Enemy;
+use super::enemy::Enemy;
 
 pub trait Spawner {
     fn spawn(&self) -> Enemy;

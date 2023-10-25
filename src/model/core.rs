@@ -1,4 +1,4 @@
-use crate::{road::Road, tower::Tower};
+use super::{road::Road, tower::Tower};
 
 pub trait GameModel {
     fn update(&mut self);

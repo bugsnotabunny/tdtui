@@ -1,6 +1,6 @@
-use noise::NoiseFn;
+use super::point::Point;
 
-use crate::point::Point;
+use noise::NoiseFn;
 
 pub trait Trajectory {
     fn get_point(&self, t: f32) -> Point;

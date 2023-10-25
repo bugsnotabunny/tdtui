@@ -4,9 +4,14 @@ use crossterm::{
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
     ExecutableCommand,
 };
-use ratatui::prelude::*;
+use ratatui::{
+    prelude::{Constraint, CrosstermBackend, Direction, Layout},
+    Frame, Terminal,
+};
 
-use crate::{game_model::GameModel, road::RoadDrawable};
+use crate::model::core::GameModel;
+
+use super::road::RoadDrawable;
 
 pub struct Camera {
     position: (f32, f32),
@@ -68,12 +73,7 @@ pub struct Screen {
 }
 
 pub trait Drawable {
-    fn draw(
-        &self,
-        frame: &mut Frame<CrosstermBackend<Stdout>>,
-        camera: &Camera,
-        game_model: &dyn GameModel,
-    );
+    fn draw(&self, frame: &mut Frame, camera: &Camera, game_model: &dyn GameModel);
 }
 
 impl Screen {
@@ -100,11 +100,7 @@ impl Screen {
         Ok(())
     }
 
-    fn draw_impl(
-        frame: &mut Frame<CrosstermBackend<Stdout>>,
-        camera: &Camera,
-        game_model: &dyn GameModel,
-    ) {
+    fn draw_impl(frame: &mut Frame, camera: &Camera, game_model: &dyn GameModel) {
         let road_drawable = RoadDrawable::new(game_model.road());
         road_drawable.draw(frame, camera, game_model);
 

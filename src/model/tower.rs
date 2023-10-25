@@ -1,8 +1,8 @@
 use std::{cell::RefCell, rc::Rc};
 
-use rand::seq::IteratorRandom;
+use super::{damage::Damage, enemy::Enemy, point::Point, road::Road, trajectory::Trajectory};
 
-use crate::{damage::Damage, enemy::Enemy, point::Point, road::Road, trajectory::Trajectory};
+use rand::seq::IteratorRandom;
 
 pub struct Aim {
     aim: Option<Rc<RefCell<Enemy>>>,

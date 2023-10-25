@@ -1,30 +1,24 @@
-mod damage;
-mod enemy;
-mod game_model;
-mod input;
-mod point;
-mod road;
-mod spawner;
-mod tower;
-mod trajectory;
-mod ui;
-
 use std::{
     io,
     time::{Duration, Instant},
 };
+pub mod input;
+pub mod model;
+pub mod ui;
 
-use game_model::{ConcreteGameModel, GameModel};
-use input::InputMask;
-use noise::Perlin;
-use point::Point;
-use road::ConcreteRoad;
-use ui::Camera;
-
-use crate::{
-    damage::Damage, input::poll_events, spawner::BasicSpawner, tower::Tower,
-    trajectory::NoiseTrajectory, ui::Screen,
+use input::{poll_events, InputMask};
+use model::{
+    core::{ConcreteGameModel, GameModel},
+    damage::{Damage, DamageType},
+    point::Point,
+    road::ConcreteRoad,
+    spawner::BasicSpawner,
+    tower::Tower,
+    trajectory::NoiseTrajectory,
 };
+use ui::core::{Camera, Screen};
+
+use noise::Perlin;
 
 const SCROLL: f32 = 1.0;
 const SCALE_SCROLL: f32 = 0.1;
@@ -113,7 +107,7 @@ fn main() -> io::Result<()> {
     model.build(Tower::new(
         Damage {
             value: 1,
-            kind: damage::DamageType::KINNETIC,
+            kind: DamageType::KINNETIC,
         },
         100.0,
         Point { x: 5.0, y: 5.0 },
