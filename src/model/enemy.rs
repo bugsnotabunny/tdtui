@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use super::{damage::Damage, trajectory::Trajectory};
 
 pub struct Enemy {
@@ -30,12 +32,12 @@ impl Enemy {
         }
     }
 
-    fn move_forward(&mut self, trajectory: &dyn Trajectory) {
+    fn move_forward(&mut self, delta_time: Duration, trajectory: &dyn Trajectory) {
         const INITIAL_STEP: f32 = 1e-2;
         const EPSILON_MULTIPLYER: f32 = 1e2;
         const EPSILON: f32 = f32::EPSILON * EPSILON_MULTIPLYER;
 
-        let mut move_points = self.speed;
+        let mut move_points = self.speed * delta_time.as_secs_f32();
         let mut step = INITIAL_STEP;
         while move_points > EPSILON {
             let t_to_move_to = self.position + step;
@@ -53,7 +55,7 @@ impl Enemy {
         }
     }
 
-    pub fn on_update(&mut self, self_trajectory: &dyn Trajectory) {
-        self.move_forward(self_trajectory);
+    pub fn on_update(&mut self, delta_time: Duration, self_trajectory: &dyn Trajectory) {
+        self.move_forward(delta_time, self_trajectory);
     }
 }

@@ -1,7 +1,9 @@
+use std::time::Duration;
+
 use super::{road::Road, tower::Tower};
 
 pub trait GameModel {
-    fn update(&mut self);
+    fn update(&mut self, delta_time: Duration);
     fn is_over(&self) -> bool;
     fn road(&self) -> &dyn Road;
     fn towers(&self) -> &Vec<Tower>;
@@ -26,10 +28,10 @@ impl<R: Road> ConcreteGameModel<R> {
 }
 
 impl<R: Road> GameModel for ConcreteGameModel<R> {
-    fn update(&mut self) {
-        self.road.on_update();
+    fn update(&mut self, delta_time: Duration) {
+        self.road.on_update(delta_time);
         for tower in self.towers.iter_mut() {
-            tower.on_update(&self.road);
+            tower.on_update(delta_time, &self.road);
         }
     }
 

@@ -8,6 +8,7 @@ pub mod ui;
 
 use input::{poll_events, InputMask};
 use model::{
+    clock::Clock,
     core::{ConcreteGameModel, GameModel},
     damage::{Damage, DamageType},
     point::Point,
@@ -49,17 +50,18 @@ impl<G: GameModel> App<G> {
     }
 
     fn run_impl(&mut self, tick_duration: Duration) -> io::Result<()> {
-        let mut last_update = Instant::now();
+        let mut clock = Clock::from_now();
         while self.keep_going {
-            let timeout = tick_duration.saturating_sub(last_update.elapsed());
-
+            let delta_time = clock.elapsed();
+            let timeout = tick_duration.saturating_sub(delta_time);
             self.handle_events(poll_events(timeout)?);
 
-            if last_update.elapsed() >= tick_duration {
-                self.game_model.update();
+            if delta_time >= tick_duration {
+                self.game_model.update(delta_time);
                 self.screen.draw_frame(&self.camera, &self.game_model)?;
-                last_update = Instant::now();
+                clock.tick();
             }
+
             self.keep_going &= !self.game_model.is_over();
         }
         Ok(())

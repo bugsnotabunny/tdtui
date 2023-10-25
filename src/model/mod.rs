@@ -1,3 +1,4 @@
+pub mod clock;
 pub mod core;
 pub mod damage;
 pub mod enemy;

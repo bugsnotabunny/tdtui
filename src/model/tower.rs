@@ -1,4 +1,4 @@
-use std::{cell::RefCell, rc::Rc};
+use std::{cell::RefCell, rc::Rc, time::Duration};
 
 use super::{damage::Damage, enemy::Enemy, point::Point, road::Road, trajectory::Trajectory};
 
@@ -93,7 +93,7 @@ impl Tower {
         self.aim = Aim::new(random_chosen_enemy)
     }
 
-    pub fn on_update(&mut self, road: &dyn Road) {
+    pub fn on_update(&mut self, _: Duration, road: &dyn Road) {
         self.update_aim(road);
         self.shoot();
     }
