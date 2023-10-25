@@ -1,6 +1,4 @@
-use crate::{
-    damage::Damage, game::GameModel, spawner::Spawner, trajectory::Trajectory, ui::Drawable,
-};
+use crate::{damage::Damage, game_model::GameModel, trajectory::Trajectory, ui::Drawable};
 
 use ratatui::{
     style::Color,
@@ -30,7 +28,14 @@ impl Enemy {
         self.position
     }
 
-    pub fn move_forward(&mut self, trajectory: &impl Trajectory) {
+    pub fn take_damage(&mut self, damage: Damage) {
+        match self.health.checked_sub(damage.value) {
+            Some(health) => self.health = health,
+            None => self.health = 0,
+        }
+    }
+
+    fn move_forward(&mut self, trajectory: &dyn Trajectory) {
         const INITIAL_STEP: f32 = 1e-2;
         const EPSILON_MULTIPLYER: f32 = 1e2;
         const EPSILON: f32 = f32::EPSILON * EPSILON_MULTIPLYER;
@@ -53,20 +58,17 @@ impl Enemy {
         }
     }
 
-    pub fn take_damage(&mut self, damage: Damage) {
-        match self.health.checked_sub(damage.value) {
-            Some(health) => self.health = health,
-            None => self.health = 0,
-        }
+    pub fn on_update(&mut self, self_trajectory: &dyn Trajectory) {
+        self.move_forward(self_trajectory);
     }
 }
 
-impl<T: Trajectory, S: Spawner> Drawable<T, S> for Enemy {
+impl Drawable for Enemy {
     fn draw(
         &self,
         frame: &mut ratatui::Frame<ratatui::prelude::CrosstermBackend<std::io::Stdout>>,
         camera: &crate::ui::Camera,
-        game_model: &GameModel<T, S>,
+        game_model: &dyn GameModel,
     ) {
         let frame_w = frame.size().width;
         let frame_h = frame.size().height;

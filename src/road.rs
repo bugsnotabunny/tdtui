@@ -2,22 +2,28 @@ use std::{cell::RefCell, rc::Rc, vec::Vec};
 
 use crate::{
     enemy::Enemy,
-    game::GameModel,
+    game_model::GameModel,
     spawner::Spawner,
     trajectory::Trajectory,
     ui::{Camera, Drawable},
-    update::Update,
 };
 
 const ROAD_LEN: f32 = 100.0;
 
-pub struct Road<T: Trajectory, S: Spawner> {
+pub trait Road {
+    fn on_update(&mut self);
+    fn is_overrun(&self) -> bool;
+    fn trajectory(&self) -> &dyn Trajectory;
+    fn enemies(&self) -> &Vec<Rc<RefCell<Enemy>>>;
+}
+
+pub struct ConcreteRoad<T: Trajectory, S: Spawner> {
     trajectory: T,
     spawner: S,
     enemies: Vec<Rc<RefCell<Enemy>>>,
 }
 
-impl<T: Trajectory, S: Spawner> Road<T, S> {
+impl<T: Trajectory, S: Spawner> ConcreteRoad<T, S> {
     pub fn new(trajectory: T, spawner: S) -> Self {
         Self {
             trajectory: trajectory,
@@ -25,37 +31,36 @@ impl<T: Trajectory, S: Spawner> Road<T, S> {
             enemies: Vec::new(),
         }
     }
+}
 
-    pub fn trajectory(&self) -> &T {
+impl<T: Trajectory, S: Spawner> Road for ConcreteRoad<T, S> {
+    fn on_update(&mut self) {
+        self.enemies.retain(|enemy| !enemy.borrow().is_dead());
+        for enemy in self.enemies.iter_mut() {
+            enemy.borrow_mut().on_update(&self.trajectory);
+        }
+        self.spawn_new_enemy();
+    }
+
+    fn trajectory(&self) -> &dyn Trajectory {
         &self.trajectory
     }
 
-    pub fn is_overrun(&self) -> bool {
+    fn is_overrun(&self) -> bool {
         self.enemies
             .iter()
             .any(|rc| rc.borrow().position() > ROAD_LEN)
     }
 
-    pub fn enemies(&self) -> &Vec<Rc<RefCell<Enemy>>> {
+    fn enemies(&self) -> &Vec<Rc<RefCell<Enemy>>> {
         &self.enemies
     }
 }
 
-impl<T: Trajectory, S: Spawner> Road<T, S> {
+impl<T: Trajectory, S: Spawner> ConcreteRoad<T, S> {
     fn spawn_new_enemy(&mut self) {
         let enemy = Rc::new(RefCell::new(self.spawner.spawn()));
         self.enemies.push(enemy);
-    }
-}
-
-impl<T: Trajectory, S: Spawner> Update for Road<T, S> {
-    fn update(&mut self) {
-        self.enemies.retain(|enemy| !enemy.borrow().is_dead());
-
-        for enemy in self.enemies.iter() {
-            enemy.borrow_mut().move_forward(self.trajectory());
-        }
-        self.spawn_new_enemy();
     }
 }
 
@@ -66,7 +71,7 @@ pub struct RoadDrawable {
 }
 
 impl RoadDrawable {
-    pub fn new<T: Trajectory, S: Spawner>(road: &Road<T, S>) -> RoadDrawable {
+    pub fn new(road: &dyn Road) -> RoadDrawable {
         let data = Vec::from_iter(
             (0..100)
                 .map(|x| x as f32 * 1.0)
@@ -78,12 +83,12 @@ impl RoadDrawable {
     }
 }
 
-impl<T: Trajectory, S: Spawner> Drawable<T, S> for RoadDrawable {
+impl Drawable for RoadDrawable {
     fn draw(
         &self,
         frame: &mut ratatui::Frame<ratatui::prelude::CrosstermBackend<std::io::Stdout>>,
         camera: &Camera,
-        _: &GameModel<T, S>,
+        _: &dyn GameModel,
     ) {
         let datasets = vec![Dataset::default()
             .marker(symbols::Marker::Braille)

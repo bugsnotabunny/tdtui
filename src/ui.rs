@@ -6,7 +6,7 @@ use crossterm::{
 };
 use ratatui::prelude::*;
 
-use crate::{game::GameModel, spawner::Spawner, trajectory::Trajectory};
+use crate::{game_model::GameModel, road::RoadDrawable};
 
 pub struct Camera {
     position: (f32, f32),
@@ -63,27 +63,23 @@ impl Camera {
     }
 }
 
-pub struct UI {
+pub struct Screen {
     terminal: Terminal<CrosstermBackend<Stdout>>,
-    camera: Camera,
 }
 
-pub trait Drawable<T: Trajectory, S: Spawner> {
+pub trait Drawable {
     fn draw(
         &self,
         frame: &mut Frame<CrosstermBackend<Stdout>>,
         camera: &Camera,
-        game_model: &GameModel<T, S>,
+        game_model: &dyn GameModel,
     );
 }
 
-impl UI {
+impl Screen {
     pub fn new() -> io::Result<Self> {
         let terminal = Terminal::new(CrosstermBackend::new(stdout()))?;
-        Ok(Self {
-            camera: Camera::default(),
-            terminal: terminal,
-        })
+        Ok(Self { terminal: terminal })
     }
 
     pub fn init(&mut self) -> io::Result<()> {
@@ -98,17 +94,22 @@ impl UI {
         Ok(())
     }
 
-    pub fn draw<T: Trajectory, S: Spawner>(&mut self, data: &GameModel<T, S>) -> io::Result<()> {
+    pub fn draw_frame(&mut self, camera: &Camera, game_model: &impl GameModel) -> io::Result<()> {
         self.terminal
-            .draw(|frame| data.draw(frame, &self.camera, data))?;
+            .draw(|frame| Self::draw_impl(frame, camera, game_model))?;
         Ok(())
     }
 
-    pub fn camera(&self) -> &Camera {
-        &self.camera
-    }
+    fn draw_impl(
+        frame: &mut Frame<CrosstermBackend<Stdout>>,
+        camera: &Camera,
+        game_model: &dyn GameModel,
+    ) {
+        let road_drawable = RoadDrawable::new(game_model.road());
+        road_drawable.draw(frame, camera, game_model);
 
-    pub fn camera_mut(&mut self) -> &mut Camera {
-        &mut self.camera
+        for enemy in game_model.road().enemies().iter() {
+            enemy.borrow().draw(frame, camera, game_model);
+        }
     }
 }

@@ -1,6 +1,6 @@
 mod damage;
 mod enemy;
-mod game;
+mod game_model;
 mod input;
 mod point;
 mod road;
@@ -8,56 +8,53 @@ mod spawner;
 mod tower;
 mod trajectory;
 mod ui;
-mod update;
 
 use std::{
     io,
     time::{Duration, Instant},
 };
 
+use game_model::{ConcreteGameModel, GameModel};
 use input::InputMask;
 use noise::Perlin;
 use point::Point;
+use road::ConcreteRoad;
+use ui::Camera;
 
 use crate::{
-    damage::Damage,
-    game::GameModel,
-    input::poll_events,
-    road::Road,
-    spawner::{BasicSpawner, Spawner},
-    tower::Tower,
-    trajectory::{NoiseTrajectory, Trajectory},
-    ui::UI,
-    update::Update,
+    damage::Damage, input::poll_events, spawner::BasicSpawner, tower::Tower,
+    trajectory::NoiseTrajectory, ui::Screen,
 };
 
 const SCROLL: f32 = 1.0;
 const SCALE_SCROLL: f32 = 0.1;
 
-struct App<T: Trajectory, S: Spawner> {
-    model: GameModel<T, S>,
-    ui: UI,
+struct App<G: GameModel> {
+    game_model: G,
+    screen: Screen,
+    camera: Camera,
     keep_going: bool,
 }
 
-impl<T: Trajectory, S: Spawner> App<T, S> {
-    pub fn new(model: GameModel<T, S>, ui: UI) -> Self {
+impl<G: GameModel> App<G> {
+    pub fn new(model: G, ui: Screen) -> Self {
         Self {
-            model,
-            ui: ui,
+            game_model: model,
+            screen: ui,
+            camera: Camera::default(),
             keep_going: true,
         }
     }
 
     pub fn run(&mut self, tick_duration: Duration) -> io::Result<()> {
+        self.screen.init()?;
         let run_res = self.run_impl(tick_duration);
-        self.ui.kill()?;
+        self.screen.kill()?;
         run_res?;
         Ok(())
     }
 
     fn run_impl(&mut self, tick_duration: Duration) -> io::Result<()> {
-        self.ui.init()?;
         let mut last_update = Instant::now();
         while self.keep_going {
             let timeout = tick_duration.saturating_sub(last_update.elapsed());
@@ -65,11 +62,11 @@ impl<T: Trajectory, S: Spawner> App<T, S> {
             self.handle_events(poll_events(timeout)?);
 
             if last_update.elapsed() >= tick_duration {
-                self.model.update();
-                self.ui.draw(&self.model)?;
+                self.game_model.update();
+                self.screen.draw_frame(&self.camera, &self.game_model)?;
                 last_update = Instant::now();
             }
-            self.keep_going &= !self.model.is_over();
+            self.keep_going &= !self.game_model.is_over();
         }
         Ok(())
     }
@@ -78,26 +75,26 @@ impl<T: Trajectory, S: Spawner> App<T, S> {
         match inputs {
             InputMask::Quitted => self.keep_going = false,
             InputMask::RightPressed => {
-                let mut pos = self.ui.camera().position();
+                let mut pos = self.camera.position();
                 pos.0 += SCROLL;
-                self.ui.camera_mut().set_position(pos);
+                self.camera.set_position(pos);
             }
             InputMask::LeftPressed => {
-                let mut pos = self.ui.camera().position();
+                let mut pos = self.camera.position();
                 pos.0 -= SCROLL;
-                self.ui.camera_mut().set_position(pos);
+                self.camera.set_position(pos);
             }
             InputMask::UpPressed => {}
             InputMask::DownPressed => {}
             InputMask::ScaleDownPressed => {
-                let scale = self.ui.camera().scale();
+                let scale = self.camera.scale();
                 if scale > SCALE_SCROLL {
-                    self.ui.camera_mut().set_scale(scale - SCALE_SCROLL);
+                    self.camera.set_scale(scale - SCALE_SCROLL);
                 }
             }
             InputMask::ScaleUpPressed => {
-                let scale = self.ui.camera().scale();
-                self.ui.camera_mut().set_scale(scale + SCALE_SCROLL);
+                let scale = self.camera.scale();
+                self.camera.set_scale(scale + SCALE_SCROLL);
             }
             _ => {}
         }
@@ -110,8 +107,8 @@ fn main() -> io::Result<()> {
     let perlin = Perlin::new(10);
     let spawner = BasicSpawner::default();
     let trajectory = NoiseTrajectory::new(&perlin);
-    let road = Road::new(trajectory, spawner);
-    let mut model = GameModel::new(road);
+    let road = ConcreteRoad::new(trajectory, spawner);
+    let mut model = ConcreteGameModel::new(road);
 
     model.build(Tower::new(
         Damage {
@@ -122,7 +119,7 @@ fn main() -> io::Result<()> {
         Point { x: 5.0, y: 5.0 },
     ));
 
-    let ui = UI::new()?;
+    let ui = Screen::new()?;
 
     let mut app = App::new(model, ui);
     app.run(tick_duration)?;

@@ -2,10 +2,7 @@ use std::{cell::RefCell, rc::Rc};
 
 use rand::seq::IteratorRandom;
 
-use crate::{
-    damage::Damage, enemy::Enemy, point::Point, road::Road, spawner::Spawner,
-    trajectory::Trajectory,
-};
+use crate::{damage::Damage, enemy::Enemy, point::Point, road::Road, trajectory::Trajectory};
 
 pub struct Aim {
     aim: Option<Rc<RefCell<Enemy>>>,
@@ -16,7 +13,7 @@ impl Aim {
         Self { aim: aim.clone() }
     }
 
-    pub fn is_in_shoot_range(&self, tower: &Tower, trajectory: &impl Trajectory) -> bool {
+    pub fn is_in_shoot_range(&self, tower: &Tower, trajectory: &dyn Trajectory) -> bool {
         match self.aim.as_ref() {
             Some(aimcell) => {
                 let aim = aimcell.borrow();
@@ -70,11 +67,11 @@ impl Tower {
         self.range
     }
 
-    pub fn shoot(&mut self) {
+    fn shoot(&mut self) {
         self.aim.try_shoot(self.damage.clone())
     }
 
-    pub fn update_aim(&mut self, road: &Road<impl Trajectory, impl Spawner>) {
+    fn update_aim(&mut self, road: &dyn Road) {
         if !self.aim.is_in_shoot_range(self, road.trajectory()) {
             self.aim = Aim::new(None);
         }
@@ -94,5 +91,10 @@ impl Tower {
             .choose(&mut rand::thread_rng());
 
         self.aim = Aim::new(random_chosen_enemy)
+    }
+
+    pub fn on_update(&mut self, road: &dyn Road) {
+        self.update_aim(road);
+        self.shoot();
     }
 }
