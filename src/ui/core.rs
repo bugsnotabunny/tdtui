@@ -6,23 +6,24 @@ use crossterm::{
     ExecutableCommand,
 };
 use ratatui::{
-    prelude::{Constraint, CrosstermBackend, Direction, Layout},
+    prelude::{Constraint, CrosstermBackend, Direction, Layout, Rect},
     Frame, Terminal,
 };
 
-use crate::model::core::GameModel;
+use crate::model::{core::GameModel, point::Point};
 
 use super::{road::RoadDrawable, tower::TowerDrawable};
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct Camera {
-    position: (f32, f32),
+    position: Point,
     scale: f32,
 }
 
 impl Default for Camera {
     fn default() -> Self {
         Self {
-            position: (0.0, -10.0),
+            position: Point::default(),
             scale: 1.0,
         }
     }
@@ -41,23 +42,23 @@ impl Camera {
 
     pub fn x_bounds(&self, frame_w: u16) -> [f64; 2] {
         [
-            self.position().0 as f64,
-            (self.position().0 + frame_w as f32 * self.scale()) as f64,
+            self.position().x as f64,
+            (self.position().x + frame_w as f32 * self.scale()) as f64,
         ]
     }
 
     pub fn y_bounds(&self, frame_h: u16) -> [f64; 2] {
         [
-            self.position().1 as f64,
-            (self.position().1 + frame_h as f32 * self.scale()) as f64,
+            self.position().y as f64,
+            (self.position().y + frame_h as f32 * self.scale()) as f64,
         ]
     }
 
-    pub fn position(&self) -> (f32, f32) {
-        self.position
+    pub fn position(&self) -> &Point {
+        &self.position
     }
 
-    pub fn set_position(&mut self, position: (f32, f32)) -> &mut Self {
+    pub fn set_position(&mut self, position: Point) -> &mut Self {
         self.position = position;
         self
     }
@@ -97,10 +98,14 @@ impl Screen {
         Ok(())
     }
 
+    pub fn size(&self) -> io::Result<Rect> {
+        self.terminal.size()
+    }
+
     pub fn draw_frame(&mut self, camera: &Camera, game_model: &impl GameModel) -> io::Result<()> {
         self.terminal
             .draw(|frame| Self::draw_impl(frame, camera, game_model))?;
-        
+
         Ok(())
     }
 

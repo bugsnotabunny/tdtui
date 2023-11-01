@@ -1,42 +1,42 @@
 use crate::ui::core::Camera;
 
-use super::core::{HandleEvents, InputMask};
+use super::core::{HandleEvent, InputEvent};
 
 const SCROLL: f32 = 1.0;
 const SCALE_SCROLL: f32 = 0.1;
 
-impl HandleEvents for Camera {
-    fn handle(&mut self, events: InputMask) {
-        match events {
-            InputMask::RightPressed => {
-                let mut pos = self.position();
-                pos.0 += SCROLL;
+impl HandleEvent for Camera {
+    fn handle(&mut self, event: InputEvent) {
+        match event {
+            InputEvent::CameraRight => {
+                let mut pos = self.position().clone();
+                pos.x += SCROLL;
                 self.set_position(pos);
             }
-            InputMask::LeftPressed => {
-                let mut pos = self.position();
-                pos.0 -= SCROLL;
+            InputEvent::CameraLeft => {
+                let mut pos = self.position().clone();
+                pos.x -= SCROLL;
                 self.set_position(pos);
             }
-            InputMask::UpPressed => {
-                let mut pos = self.position();
-                pos.1 += SCROLL;
+            InputEvent::CameraUp => {
+                let mut pos = self.position().clone();
+                pos.y += SCROLL;
                 self.set_position(pos);
             }
-            InputMask::DownPressed => {
-                let mut pos = self.position();
-                pos.1 -= SCROLL;
+            InputEvent::CameraDown => {
+                let mut pos = self.position().clone();
+                pos.y -= SCROLL;
                 self.set_position(pos);
             }
-            InputMask::ScaleDownPressed => {
+            InputEvent::CameraScaleDown => {
+                let scale = self.scale();
+                self.set_scale(scale + SCALE_SCROLL);
+            }
+            InputEvent::CameraScaleUp => {
                 let scale = self.scale();
                 if scale > SCALE_SCROLL {
                     self.set_scale(scale - SCALE_SCROLL);
                 }
-            }
-            InputMask::ScaleUpPressed => {
-                let scale = self.scale();
-                self.set_scale(scale + SCALE_SCROLL);
             }
             _ => {}
         }

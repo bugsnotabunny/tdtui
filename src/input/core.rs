@@ -1,104 +1,182 @@
 use std::{io, time::Duration};
 
-use bitmask_enum::bitmask;
-use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
+use crossterm::event::{
+    self, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers, MouseButton, MouseEvent,
+    MouseEventKind,
+};
+use ratatui::prelude::Rect;
 
-#[bitmask]
-pub enum InputMask {
-    Quitted = 0b00000001,
-    RightPressed = 0b00000010,
-    LeftPressed = 0b00000100,
-    UpPressed = 0b00001000,
-    DownPressed = 0b00010000,
-    ScaleUpPressed = 0b00100000,
-    ScaleDownPressed = 0b01000000,
+use crate::{model::point::Point, ui::core::Camera};
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct ScreenInfo {
+    camera: Camera,
+    frame_w: u16,
+    frame_h: u16,
 }
 
-impl InputMask {
-    pub fn set(&mut self, bits: InputMask) -> &mut Self {
-        *self |= bits;
-        self
+impl ScreenInfo {
+    pub fn new(camera: Camera, frame_w: u16, frame_h: u16) -> Self {
+        Self {
+            camera: camera,
+            frame_w: frame_w,
+            frame_h: frame_h,
+        }
     }
 
-    pub fn unset(&mut self, bits: InputMask) -> &mut Self {
-        *self &= bits.not();
-        self
+    pub fn from_frame_size(camera: Camera, frame_size: Rect) -> Self {
+        Self::new(camera, frame_size.width, frame_size.height)
+    }
+
+    pub fn camera(&self) -> &Camera {
+        &self.camera
+    }
+
+    pub fn size(&self) -> (u16, u16) {
+        (self.frame_w, self.frame_h)
+    }
+
+    pub fn len_x(&self) -> f64 {
+        let bounds = self.camera.x_bounds(self.frame_w);
+        bounds[1] - bounds[0]
+    }
+
+    pub fn len_y(&self) -> f64 {
+        let bounds = self.camera.y_bounds(self.frame_h);
+        bounds[1] - bounds[0]
     }
 }
 
-pub fn poll_events(timeout: Duration) -> io::Result<InputMask> {
-    let mut result = InputMask::none();
+#[derive(Debug, Clone, PartialEq)]
+pub struct MouseInput {
+    col: u16,
+    row: u16,
+    info: ScreenInfo,
+}
+
+impl MouseInput {
+    pub fn new(event: MouseEvent, info: ScreenInfo) -> Self {
+        Self {
+            col: event.column,
+            row: event.row,
+            info: info,
+        }
+    }
+
+    pub fn to_world_point(&self) -> Point {
+        let percent_x = self.col as f32 / self.info.frame_w as f32;
+        let len_x = self.info.len_x() as f32;
+        let x = self.info.camera().position().x + percent_x * len_x;
+
+        let percent_y = 1.0 - self.row as f32 / self.info.frame_h as f32;
+        let len_y = self.info.len_y() as f32;
+        let y = self.info.camera().position().y + percent_y * len_y;
+        Point { x: x, y: y }
+    }
+}
+
+#[derive(Clone, PartialEq, Debug)]
+pub enum InputEvent {
+    GameQuit,
+    CameraRight,
+    CameraLeft,
+    CameraUp,
+    CameraDown,
+    CameraScaleUp,
+    CameraScaleDown,
+    CameraDrag(Point),
+    MousePressedL(MouseInput),
+    MousePressedR(MouseInput),
+    None,
+    Unknown,
+}
+
+pub fn poll_event(timeout: Duration, info: ScreenInfo) -> io::Result<InputEvent> {
     if !event::poll(timeout)? {
-        return Ok(result);
+        return Ok(InputEvent::None);
     }
-
-    while event::poll(Duration::from_millis(0))? {
-        if let Event::Key(key) = event::read()? {
-            match key {
-                KeyEvent {
-                    code: KeyCode::Char('q'),
-                    modifiers: KeyModifiers::CONTROL,
-                    kind: _,
-                    state: _,
-                } => maybe_set(&mut result, key, InputMask::Quitted),
-
-                KeyEvent {
-                    code: KeyCode::Char('d'),
-                    modifiers: _,
-                    kind: _,
-                    state: _,
-                } => maybe_set(&mut result, key, InputMask::RightPressed),
-
-                KeyEvent {
-                    code: KeyCode::Char('a'),
-                    modifiers: _,
-                    kind: _,
-                    state: _,
-                } => maybe_set(&mut result, key, InputMask::LeftPressed),
-
-                KeyEvent {
-                    code: KeyCode::Char('w'),
-                    modifiers: _,
-                    kind: _,
-                    state: _,
-                } => maybe_set(&mut result, key, InputMask::UpPressed),
-                KeyEvent {
-                    code: KeyCode::Char('s'),
-                    modifiers: _,
-                    kind: _,
-                    state: _,
-                } => maybe_set(&mut result, key, InputMask::DownPressed),
-                KeyEvent {
-                    code: KeyCode::Char('z'),
-                    modifiers: _,
-                    kind: _,
-                    state: _,
-                } => maybe_set(&mut result, key, InputMask::ScaleUpPressed),
-                KeyEvent {
-                    code: KeyCode::Char('x'),
-                    modifiers: _,
-                    kind: _,
-                    state: _,
-                } => maybe_set(&mut result, key, InputMask::ScaleDownPressed),
-                _ => {}
+    let event = event::read()?;
+    match event {
+        Event::Key(key) => {
+            if key.kind == KeyEventKind::Release {
+                return Ok(InputEvent::None);
             }
+            Ok(match_key(key))
         }
-    }
-    Ok(result)
-}
-
-fn maybe_set(inputs: &mut InputMask, key: KeyEvent, to_set: InputMask) {
-    match key.kind {
-        KeyEventKind::Press => {
-            inputs.set(to_set);
-        }
-        KeyEventKind::Release => {
-            inputs.unset(to_set);
-        }
-        KeyEventKind::Repeat => {}
+        Event::Mouse(mouse) => Ok(match_mouse_kind(mouse, info)),
+        _ => Ok(InputEvent::Unknown),
     }
 }
 
-pub trait HandleEvents {
-    fn handle(&mut self, events: InputMask);
+fn match_key(key: KeyEvent) -> InputEvent {
+    match key {
+        KeyEvent {
+            code: KeyCode::Char('q'),
+            modifiers: KeyModifiers::CONTROL,
+            kind: _,
+            state: _,
+        } => InputEvent::GameQuit,
+
+        KeyEvent {
+            code: KeyCode::Char('d'),
+            modifiers: _,
+            kind: _,
+            state: _,
+        } => InputEvent::CameraRight,
+
+        KeyEvent {
+            code: KeyCode::Char('a'),
+            modifiers: _,
+            kind: _,
+            state: _,
+        } => InputEvent::CameraLeft,
+
+        KeyEvent {
+            code: KeyCode::Char('w'),
+            modifiers: _,
+            kind: _,
+            state: _,
+        } => InputEvent::CameraUp,
+
+        KeyEvent {
+            code: KeyCode::Char('s'),
+            modifiers: _,
+            kind: _,
+            state: _,
+        } => InputEvent::CameraDown,
+
+        KeyEvent {
+            code: KeyCode::Char('z'),
+            modifiers: _,
+            kind: _,
+            state: _,
+        } => InputEvent::CameraScaleUp,
+
+        KeyEvent {
+            code: KeyCode::Char('x'),
+            modifiers: _,
+            kind: _,
+            state: _,
+        } => InputEvent::CameraScaleDown,
+
+        _ => InputEvent::Unknown,
+    }
+}
+
+fn match_mouse_kind(event: MouseEvent, info: ScreenInfo) -> InputEvent {
+    use MouseEventKind::*;
+    match event.kind {
+        ScrollDown => InputEvent::CameraScaleDown,
+        ScrollUp => InputEvent::CameraScaleUp,
+        Down(button) => match button {
+            MouseButton::Left => InputEvent::MousePressedL(MouseInput::new(event, info)),
+            MouseButton::Right => InputEvent::MousePressedR(MouseInput::new(event, info)),
+            _ => InputEvent::Unknown,
+        },
+        _ => InputEvent::Unknown,
+    }
+}
+
+pub trait HandleEvent {
+    fn handle(&mut self, event: InputEvent);
 }

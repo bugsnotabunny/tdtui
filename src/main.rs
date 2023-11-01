@@ -1,9 +1,10 @@
-use std::{io, time::Duration};
 pub mod input;
 pub mod model;
 pub mod ui;
 
-use input::core::{poll_event, HandleEvent, InputEvent};
+use std::{io, time::Duration};
+
+use input::core::{poll_event, HandleEvent, InputEvent, ScreenInfo};
 use model::{
     clock::Clock,
     core::{ConcreteGameModel, GameModel},
@@ -48,13 +49,16 @@ impl<G: GameModel + HandleEvent> App<G> {
         while self.keep_going {
             while clock.elapsed() < tick_duration {
                 let timeout = tick_duration.saturating_sub(clock.elapsed());
-                let event = poll_event(timeout)?;
+                let screen_info =
+                    ScreenInfo::from_frame_size(self.camera.clone(), self.screen.size()?);
+                let event = poll_event(timeout, screen_info)?;
                 self.handle_event(event);
             }
 
             let delta_time = clock.elapsed();
             if delta_time >= tick_duration {
                 self.game_model.update(delta_time);
+
                 self.screen.draw_frame(&self.camera, &self.game_model)?;
                 clock.tick();
             }
@@ -76,7 +80,7 @@ impl<G: GameModel + HandleEvent> App<G> {
 
 fn main() -> io::Result<()> {
     let target_fps = 60;
-    let tick_duration = Duration::from_millis(1000 / target_fps);
+    let tick_duration = Duration::from_millis(1000) / target_fps;
 
     let perlin = Perlin::new(10);
     let spawner = SpawnerWithCooldown::new(Duration::from_secs_f32(1.0));
