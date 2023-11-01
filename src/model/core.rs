@@ -12,7 +12,6 @@ pub trait GameModel {
     fn road(&self) -> &dyn Road;
     fn towers(&self) -> &Vec<Box<dyn Tower>>;
     fn wallet(&self) -> &Wallet;
-    fn wallet_mut(&mut self) -> &mut Wallet;
 }
 
 pub struct ConcreteGameModel<R: Road> {
@@ -22,11 +21,14 @@ pub struct ConcreteGameModel<R: Road> {
 }
 
 impl<R: Road> ConcreteGameModel<R> {
-    pub fn new(road: R) -> Self {
+    pub fn new(road: R, initial_balance: u64) -> Self {
+        let mut wallet = Wallet::default();
+        wallet.add_money(initial_balance);
+
         Self {
             road: road,
             towers: Vec::new(),
-            player_wallet: Wallet::default(),
+            player_wallet: wallet,
         }
     }
 
@@ -48,10 +50,6 @@ impl<R: Road> GameModel for ConcreteGameModel<R> {
 
     fn wallet(&self) -> &Wallet {
         &self.player_wallet
-    }
-
-    fn wallet_mut(&mut self) -> &mut Wallet {
-        &mut self.player_wallet
     }
 
     fn is_over(&self) -> bool {

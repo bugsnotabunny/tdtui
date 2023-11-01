@@ -17,6 +17,7 @@ use super::{road::RoadDrawable, tower::TowerDrawable};
 #[derive(Debug, Clone, PartialEq)]
 pub struct Camera {
     position: Point,
+    critical_scale: f32,
     scale: f32,
 }
 
@@ -24,6 +25,7 @@ impl Default for Camera {
     fn default() -> Self {
         Self {
             position: Point::default(),
+            critical_scale: 0.3,
             scale: 1.0,
         }
     }
@@ -38,6 +40,10 @@ impl Camera {
 
     pub fn scale(&self) -> f32 {
         self.scale
+    }
+
+    pub fn allows_more_detail(&self) -> bool {
+        self.critical_scale >= self.scale
     }
 
     pub fn x_bounds(&self, frame_w: u16) -> [f64; 2] {

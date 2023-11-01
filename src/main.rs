@@ -83,8 +83,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let spawner = SpawnerWithCooldown::new(Duration::from_secs_f32(1.0));
     let trajectory = NoiseTrajectory::new(&perlin);
     let road = ConcreteRoad::new(trajectory, spawner);
-    let mut model = ConcreteGameModel::new(road);
-    model.wallet_mut().add_money(1000);
+    let model = ConcreteGameModel::new(road, 1000);
 
     let ui = Screen::new()?;
 

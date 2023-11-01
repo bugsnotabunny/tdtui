@@ -1,6 +1,6 @@
 use ratatui::{
     style::Color,
-    widgets::canvas::{Canvas, Points},
+    widgets::canvas::{Canvas, Context, Points},
 };
 
 use crate::model::{core::GameModel, enemy::Enemy};
@@ -15,15 +15,21 @@ impl Drawable for Enemy {
         let self_trajectory = game_model.road().trajectory();
         let self_pos = self_trajectory.get_point(self.position());
 
-        let self_as_widget = Canvas::default()
-            .paint(|ctx| {
+        let paint_strat = |ctx: &mut Context| {
+            if camera.allows_more_detail() {
+                ctx.print(self_pos.x as f64, self_pos.y as f64, "")
+            } else {
                 ctx.draw(&Points {
                     coords: &[(self_pos.x as f64, self_pos.y as f64)],
                     color: Color::LightRed,
                 });
-            })
+            };
+        };
+
+        let self_as_widget = Canvas::default()
             .x_bounds(camera.x_bounds(frame_w))
-            .y_bounds(camera.y_bounds(frame_h));
+            .y_bounds(camera.y_bounds(frame_h))
+            .paint(paint_strat);
 
         frame.render_widget(self_as_widget, camera.main_layout().split(frame.size())[0]);
     }
