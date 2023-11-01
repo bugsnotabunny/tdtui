@@ -30,10 +30,12 @@ impl Wallet {
         self
     }
 
-    pub fn take_money(&mut self, to_take: u64) -> &Self {
-        assert!(to_take <= self.balance);
-        self.balance -= to_take;
-        self
+    pub fn take_money(&mut self, to_take: u64) -> Result<&Self, NotEnoughMoneyErr> {
+        self.balance = self
+            .balance
+            .checked_sub(to_take)
+            .ok_or(NotEnoughMoneyErr {})?;
+        Ok(self)
     }
 
     pub fn pay_to_do<F: FnOnce()>(
@@ -41,10 +43,7 @@ impl Wallet {
         cost: u64,
         callback: F,
     ) -> Result<(), NotEnoughMoneyErr> {
-        if self.balance < cost {
-            return Err(NotEnoughMoneyErr {});
-        }
-        self.take_money(cost);
+        self.take_money(cost)?;
         callback();
         Ok(())
     }
