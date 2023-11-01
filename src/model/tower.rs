@@ -1,11 +1,13 @@
 use std::{cell::RefCell, rc::Rc, time::Duration};
 
+use crate::ui::core::Drawable;
+
 use super::{
     clock::Clock,
+    core::{GameModel, UpdatableObject},
     damage::{Damage, DamageType},
     enemy::Enemy,
     point::Point,
-    road::Road,
     trajectory::Trajectory,
 };
 
@@ -20,7 +22,7 @@ impl Aim {
         Self { aim: aim.clone() }
     }
 
-    pub fn is_in_shoot_range(&self, tower: &dyn Tower, trajectory: &dyn Trajectory) -> bool {
+    pub fn is_in_shoot_range(&self, tower: &impl Tower, trajectory: &dyn Trajectory) -> bool {
         match self.aim.as_ref() {
             Some(aimcell) => {
                 let aim = aimcell.borrow();
@@ -49,10 +51,9 @@ impl Aim {
     }
 }
 
-pub trait Tower {
+pub trait Tower: UpdatableObject + Drawable {
     fn position(&self) -> &Point;
     fn range(&self) -> f32;
-    fn on_update(&mut self, road: &dyn Road);
     fn cost(&self) -> u64;
 }
 
@@ -83,8 +84,8 @@ impl ArcherTower {
         self.aim.try_shoot(Self::DAMAGE.clone())
     }
 
-    fn update_aim(&mut self, road: &dyn Road) {
-        if !self.aim.is_in_shoot_range(self, road.trajectory()) {
+    fn update_aim(&mut self, game_model: &dyn GameModel) {
+        if !self.aim.is_in_shoot_range(self, game_model.trajectory()) {
             self.aim = Aim::new(None);
         }
 
@@ -92,11 +93,11 @@ impl ArcherTower {
             return;
         }
 
-        let random_chosen_enemy = road
+        let random_chosen_enemy = game_model
             .enemies()
             .iter()
             .filter(|enemy| {
-                let enemypos = road.trajectory().get_point(enemy.borrow().position());
+                let enemypos = game_model.trajectory().get_point(enemy.borrow().position());
                 enemypos.distance(&self.position) < self.range()
             })
             .map(|rc| rc.clone())
@@ -118,9 +119,11 @@ impl Tower for ArcherTower {
     fn cost(&self) -> u64 {
         Self::COST
     }
+}
 
-    fn on_update(&mut self, road: &dyn Road) {
-        self.update_aim(road);
+impl UpdatableObject for ArcherTower {
+    fn on_update(&mut self, game_model: &dyn GameModel, _: Duration) {
+        self.update_aim(game_model);
         if self.cooldown_clock.elapsed() > Self::COOLDOWN {
             self.shoot();
             self.cooldown_clock.tick();

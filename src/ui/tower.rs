@@ -3,20 +3,19 @@ use ratatui::{
     widgets::canvas::{Canvas, Points},
 };
 
-use crate::model::{core::GameModel, tower::Tower};
+use crate::model::{
+    core::GameModel,
+    tower::{ArcherTower, Tower},
+};
 
 use super::core::{Camera, Drawable};
 
-pub struct TowerDrawable<'a> {
-    pub tower: &'a dyn Tower,
-}
-
-impl<'a> Drawable for TowerDrawable<'a> {
-    fn draw(&self, frame: &mut ratatui::Frame, camera: &Camera, _: &impl GameModel) {
+impl Drawable for ArcherTower {
+    fn draw(&self, frame: &mut ratatui::Frame, camera: &Camera, _: &dyn GameModel) {
         let frame_w = frame.size().width;
         let frame_h = frame.size().height;
 
-        let self_pos = self.tower.position();
+        let self_pos = self.position();
 
         let self_as_widget = Canvas::default()
             .marker(ratatui::symbols::Marker::Dot)

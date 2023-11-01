@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use super::{damage::Damage, trajectory::Trajectory};
+use super::{core::GameModel, damage::Damage, trajectory::Trajectory};
 
 pub struct Enemy {
     health: u8,
@@ -52,7 +52,7 @@ impl Enemy {
         }
     }
 
-    pub fn on_update(&mut self, delta_time: Duration, self_trajectory: &dyn Trajectory) {
-        self.move_forward(delta_time, self_trajectory);
+    pub fn on_update(&mut self, game_model: &dyn GameModel, delta_time: Duration) {
+        self.move_forward(delta_time, game_model.trajectory());
     }
 }

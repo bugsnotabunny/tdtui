@@ -10,7 +10,7 @@ use crate::model::{core::GameModel, wallet::Wallet};
 use super::core::{Camera, Drawable};
 
 impl Drawable for Wallet {
-    fn draw(&self, frame: &mut Frame, _: &Camera, _: &impl GameModel) {
+    fn draw(&self, frame: &mut Frame, _: &Camera, _: &dyn GameModel) {
         let text = format!("Balance: {}$", self.balance());
         let layout = Layout::default()
             .direction(Direction::Vertical)

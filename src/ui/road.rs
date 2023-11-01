@@ -5,7 +5,7 @@ use ratatui::{
     Frame,
 };
 
-use crate::model::{core::GameModel, road::Road};
+use crate::model::{core::GameModel, trajectory::Trajectory};
 
 use super::core::{Camera, Drawable};
 
@@ -14,11 +14,11 @@ pub struct RoadDrawable {
 }
 
 impl RoadDrawable {
-    pub fn new(road: &dyn Road) -> RoadDrawable {
+    pub fn new(trajectory: &dyn Trajectory) -> RoadDrawable {
         let data = Vec::from_iter(
             (0..100)
                 .map(|x| x as f32 * 1.0)
-                .map(|t| road.trajectory().get_point(t))
+                .map(|t| trajectory.get_point(t))
                 .map(|point| (point.x as f64, point.y as f64)),
         );
 
@@ -27,7 +27,7 @@ impl RoadDrawable {
 }
 
 impl Drawable for RoadDrawable {
-    fn draw(&self, frame: &mut Frame, camera: &Camera, _: &impl GameModel) {
+    fn draw(&self, frame: &mut Frame, camera: &Camera, _: &dyn GameModel) {
         let datasets = vec![Dataset::default()
             .marker(symbols::Marker::Braille)
             .style(Style::default().fg(Color::Green))

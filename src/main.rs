@@ -8,7 +8,6 @@ use input::core::{poll_event, HandleEvent, InputEvent, ScreenInfo};
 use model::{
     clock::Clock,
     core::{ConcreteGameModel, GameModel},
-    road::ConcreteRoad,
     spawner::SpawnerWithCooldown,
     trajectory::NoiseTrajectory,
 };
@@ -82,8 +81,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let perlin = Perlin::new(10);
     let spawner = SpawnerWithCooldown::new(Duration::from_secs_f32(1.0));
     let trajectory = NoiseTrajectory::new(&perlin);
-    let road = ConcreteRoad::new(trajectory, spawner);
-    let model = ConcreteGameModel::new(road, 1000);
+    let model = ConcreteGameModel::new(spawner, trajectory, 1000);
 
     let ui = Screen::new()?;
 

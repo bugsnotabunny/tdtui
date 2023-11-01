@@ -1,51 +1,71 @@
-use std::time::Duration;
+use std::{cell::RefCell, rc::Rc, time::Duration};
 
 use super::{
-    road::Road,
+    enemy::Enemy,
+    spawner::Spawner,
     tower::Tower,
+    trajectory::Trajectory,
     wallet::{NotEnoughMoneyErr, Wallet},
 };
 
 pub trait GameModel {
     fn update(&mut self, delta_time: Duration);
+
     fn is_over(&self) -> bool;
-    fn road(&self) -> &dyn Road;
-    fn towers(&self) -> &Vec<Box<dyn Tower>>;
+    fn towers(&self) -> &Vec<Box<RefCell<dyn Tower>>>;
     fn wallet(&self) -> &Wallet;
+    fn trajectory(&self) -> &dyn Trajectory;
+    fn enemies(&self) -> &Vec<Rc<RefCell<Enemy>>>;
 }
 
-pub struct ConcreteGameModel<R: Road> {
-    road: R,
-    towers: Vec<Box<dyn Tower>>,
+pub trait UpdatableObject {
+    fn on_update(&mut self, game_model: &dyn GameModel, delta_time: Duration);
+}
+
+pub struct ConcreteGameModel<S: Spawner, T: Trajectory> {
+    trajectory: T,
+    spawner: S,
+    towers: Vec<Box<RefCell<dyn Tower>>>,
+    enemies: Vec<Rc<RefCell<Enemy>>>,
     player_wallet: Wallet,
 }
 
-impl<R: Road> ConcreteGameModel<R> {
-    pub fn new(road: R, initial_balance: u64) -> Self {
+impl<S: Spawner, T: Trajectory> ConcreteGameModel<S, T> {
+    const ROAD_LEN: f32 = 100.0;
+
+    pub fn new(spawner: S, trajectory: T, initial_balance: u64) -> Self {
         let mut wallet = Wallet::default();
         wallet.add_money(initial_balance);
 
         Self {
-            road: road,
             towers: Vec::new(),
+            enemies: Vec::new(),
             player_wallet: wallet,
+            spawner: spawner,
+            trajectory: trajectory,
         }
     }
 
-    pub fn maybe_build(&mut self, tower: Box<dyn Tower>) -> Result<(), NotEnoughMoneyErr> {
-        let cost = tower.cost();
+    pub fn maybe_build(&mut self, tower: Box<RefCell<dyn Tower>>) -> Result<(), NotEnoughMoneyErr> {
+        let cost = tower.borrow().cost();
         self.player_wallet.pay_to_do(cost, || {
             self.towers.push(tower);
         })
     }
 }
 
-impl<R: Road> GameModel for ConcreteGameModel<R> {
+impl<S: Spawner, T: Trajectory> GameModel for ConcreteGameModel<S, T> {
     fn update(&mut self, delta_time: Duration) {
-        self.road.on_update(delta_time);
-        for tower in self.towers.iter_mut() {
-            tower.on_update(&self.road);
+        for tower in self.towers.iter() {
+            tower.borrow_mut().on_update(self, delta_time);
         }
+
+        self.enemies.retain(|enemy| !enemy.borrow().is_dead());
+        for enemy in self.enemies.iter() {
+            enemy.borrow_mut().on_update(self, delta_time);
+        }
+
+        self.maybe_spawn_new_enemy();
     }
 
     fn wallet(&self) -> &Wallet {
@@ -53,14 +73,37 @@ impl<R: Road> GameModel for ConcreteGameModel<R> {
     }
 
     fn is_over(&self) -> bool {
-        self.road.is_overrun()
+        self.is_overrun()
     }
 
-    fn road(&self) -> &dyn Road {
-        &self.road
-    }
-
-    fn towers(&self) -> &Vec<Box<dyn Tower>> {
+    fn towers(&self) -> &Vec<Box<RefCell<dyn Tower>>> {
         &self.towers
+    }
+
+    fn trajectory(&self) -> &dyn Trajectory {
+        &self.trajectory
+    }
+
+    fn enemies(&self) -> &Vec<Rc<RefCell<Enemy>>> {
+        &self.enemies
+    }
+}
+
+impl<S: Spawner, T: Trajectory> ConcreteGameModel<S, T> {
+    fn is_overrun(&self) -> bool {
+        self.enemies
+            .iter()
+            .any(|rc| rc.borrow().position() > Self::ROAD_LEN)
+    }
+
+    fn maybe_spawn_new_enemy(&mut self) -> bool {
+        match self.spawner.maybe_spawn() {
+            Some(enemy) => {
+                let enemy = Rc::new(RefCell::new(enemy));
+                self.enemies.push(enemy);
+                true
+            }
+            None => false,
+        }
     }
 }
