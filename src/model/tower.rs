@@ -14,11 +14,11 @@ use super::{
 use rand::seq::IteratorRandom;
 
 pub struct Aim {
-    aim: Option<Rc<RefCell<Enemy>>>,
+    aim: Option<Rc<RefCell<dyn Enemy>>>,
 }
 
 impl Aim {
-    pub fn new(aim: Option<Rc<RefCell<Enemy>>>) -> Self {
+    pub fn new(aim: Option<Rc<RefCell<dyn Enemy>>>) -> Self {
         Self { aim: aim.clone() }
     }
 
@@ -27,20 +27,18 @@ impl Aim {
             Some(aimcell) => {
                 let aim = aimcell.borrow();
                 let enemypos = trajectory.get_point(aim.position());
-                !aim.is_dead() && enemypos.distance(&tower.position()) < tower.range()
+                enemypos.distance(&tower.position()) < tower.range()
             }
             None => false,
         }
     }
 
     pub fn try_shoot(&mut self, damage: Damage) {
-        if self.aim.is_none() {
+        if !self.is_some() {
             return;
         }
-
         let aim = self.aim.as_ref().unwrap();
         aim.borrow_mut().take_damage(damage);
-
         if aim.borrow().is_dead() {
             self.aim = None;
         }

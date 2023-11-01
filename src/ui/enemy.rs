@@ -3,11 +3,14 @@ use ratatui::{
     widgets::canvas::{Canvas, Context, Points},
 };
 
-use crate::model::{core::GameModel, enemy::Enemy};
+use crate::model::{
+    core::GameModel,
+    enemy::{BasicEnemy, Enemy},
+};
 
 use super::core::{Camera, Drawable};
 
-impl Drawable for Enemy {
+impl Drawable for BasicEnemy {
     fn draw(&self, frame: &mut ratatui::Frame, camera: &Camera, game_model: &dyn GameModel) {
         let frame_w = frame.size().width;
         let frame_h = frame.size().height;

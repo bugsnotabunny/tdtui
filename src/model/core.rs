@@ -15,7 +15,7 @@ pub trait GameModel {
     fn towers(&self) -> &Vec<Box<RefCell<dyn Tower>>>;
     fn wallet(&self) -> &Wallet;
     fn trajectory(&self) -> &dyn Trajectory;
-    fn enemies(&self) -> &Vec<Rc<RefCell<Enemy>>>;
+    fn enemies(&self) -> &Vec<Rc<RefCell<dyn Enemy>>>;
 }
 
 pub trait UpdatableObject {
@@ -26,7 +26,7 @@ pub struct ConcreteGameModel<S: Spawner, T: Trajectory> {
     trajectory: T,
     spawner: S,
     towers: Vec<Box<RefCell<dyn Tower>>>,
-    enemies: Vec<Rc<RefCell<Enemy>>>,
+    enemies: Vec<Rc<RefCell<dyn Enemy>>>,
     player_wallet: Wallet,
 }
 
@@ -59,7 +59,6 @@ impl<S: Spawner, T: Trajectory> GameModel for ConcreteGameModel<S, T> {
         for tower in self.towers.iter() {
             tower.borrow_mut().on_update(self, delta_time);
         }
-
         self.enemies.retain(|enemy| !enemy.borrow().is_dead());
         for enemy in self.enemies.iter() {
             enemy.borrow_mut().on_update(self, delta_time);
@@ -84,7 +83,7 @@ impl<S: Spawner, T: Trajectory> GameModel for ConcreteGameModel<S, T> {
         &self.trajectory
     }
 
-    fn enemies(&self) -> &Vec<Rc<RefCell<Enemy>>> {
+    fn enemies(&self) -> &Vec<Rc<RefCell<dyn Enemy>>> {
         &self.enemies
     }
 }
@@ -93,7 +92,7 @@ impl<S: Spawner, T: Trajectory> ConcreteGameModel<S, T> {
     fn is_overrun(&self) -> bool {
         self.enemies
             .iter()
-            .any(|rc| rc.borrow().position() > Self::ROAD_LEN)
+            .any(|enemy| enemy.borrow().position() > Self::ROAD_LEN)
     }
 
     fn maybe_spawn_new_enemy(&mut self) -> bool {

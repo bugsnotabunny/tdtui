@@ -1,17 +1,17 @@
 use std::time::Duration;
 
-use super::{clock::Clock, enemy::Enemy};
+use super::{clock::Clock, enemy::BasicEnemy};
 
 pub trait Spawner {
-    fn maybe_spawn(&mut self) -> Option<Enemy>;
+    fn maybe_spawn(&mut self) -> Option<BasicEnemy>;
 }
 
 #[derive(Default)]
 pub struct BasicSpawner {}
 
 impl Spawner for BasicSpawner {
-    fn maybe_spawn(&mut self) -> Option<Enemy> {
-        Some(Enemy::new(4, 5.0, 0.0))
+    fn maybe_spawn(&mut self) -> Option<BasicEnemy> {
+        Some(BasicEnemy::new(4, 5.0, 0.0))
     }
 }
 
@@ -30,10 +30,10 @@ impl SpawnerWithCooldown {
 }
 
 impl Spawner for SpawnerWithCooldown {
-    fn maybe_spawn(&mut self) -> Option<Enemy> {
+    fn maybe_spawn(&mut self) -> Option<BasicEnemy> {
         if self.last_spawn.elapsed() >= self.cooldown {
             self.last_spawn.tick();
-            return Some(Enemy::new(4, 5.0, 0.0));
+            return Some(BasicEnemy::new(4, 5.0, 0.0));
         }
         return None;
     }

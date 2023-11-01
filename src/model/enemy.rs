@@ -1,14 +1,26 @@
 use std::time::Duration;
 
-use super::{core::GameModel, damage::Damage, trajectory::Trajectory};
+use crate::ui::core::Drawable;
 
-pub struct Enemy {
+use super::{
+    core::{GameModel, UpdatableObject},
+    damage::Damage,
+    trajectory::Trajectory,
+};
+
+pub trait Enemy: Drawable + UpdatableObject {
+    fn position(&self) -> f32;
+    fn take_damage(&mut self, damage: Damage);
+    fn is_dead(&self) -> bool;
+}
+
+pub struct BasicEnemy {
     health: u8,
     speed: f32,
     position: f32,
 }
 
-impl Enemy {
+impl BasicEnemy {
     pub fn new(health: u8, speed: f32, position: f32) -> Self {
         Self {
             health: health,
@@ -16,19 +28,29 @@ impl Enemy {
             position: position,
         }
     }
+}
 
-    pub fn is_dead(&self) -> bool {
-        self.health == 0
-    }
-
-    pub fn position(&self) -> f32 {
+impl Enemy for BasicEnemy {
+    fn position(&self) -> f32 {
         self.position
     }
 
-    pub fn take_damage(&mut self, damage: Damage) {
+    fn take_damage(&mut self, damage: Damage) {
         self.health = self.health.checked_sub(damage.value).unwrap_or(0);
     }
 
+    fn is_dead(&self) -> bool {
+        self.health == 0
+    }
+}
+
+impl UpdatableObject for BasicEnemy {
+    fn on_update(&mut self, game_model: &dyn GameModel, delta_time: Duration) {
+        self.move_forward(delta_time, game_model.trajectory());
+    }
+}
+
+impl BasicEnemy {
     fn move_forward(&mut self, delta_time: Duration, trajectory: &dyn Trajectory) {
         const INITIAL_STEP: f32 = 1e-3;
         const EPSILON_MULTIPLYER: f32 = 1e2;
@@ -50,9 +72,5 @@ impl Enemy {
             move_points -= step;
             self.position += step;
         }
-    }
-
-    pub fn on_update(&mut self, game_model: &dyn GameModel, delta_time: Duration) {
-        self.move_forward(delta_time, game_model.trajectory());
     }
 }
