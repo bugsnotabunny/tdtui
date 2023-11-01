@@ -6,12 +6,12 @@ pub trait GameModel {
     fn update(&mut self, delta_time: Duration);
     fn is_over(&self) -> bool;
     fn road(&self) -> &dyn Road;
-    fn towers(&self) -> &Vec<Tower>;
+    fn towers(&self) -> &Vec<Box<dyn Tower>>;
 }
 
 pub struct ConcreteGameModel<R: Road> {
     road: R,
-    towers: Vec<Tower>,
+    towers: Vec<Box<dyn Tower>>,
 }
 
 impl<R: Road> ConcreteGameModel<R> {
@@ -22,7 +22,7 @@ impl<R: Road> ConcreteGameModel<R> {
         }
     }
 
-    pub fn build(&mut self, tower: Tower) {
+    pub fn build(&mut self, tower: Box<dyn Tower>) {
         self.towers.push(tower);
     }
 }
@@ -31,7 +31,7 @@ impl<R: Road> GameModel for ConcreteGameModel<R> {
     fn update(&mut self, delta_time: Duration) {
         self.road.on_update(delta_time);
         for tower in self.towers.iter_mut() {
-            tower.on_update(delta_time, &self.road);
+            tower.on_update(&self.road);
         }
     }
 
@@ -43,7 +43,7 @@ impl<R: Road> GameModel for ConcreteGameModel<R> {
         &self.road
     }
 
-    fn towers(&self) -> &Vec<Tower> {
+    fn towers(&self) -> &Vec<Box<dyn Tower>> {
         &self.towers
     }
 }

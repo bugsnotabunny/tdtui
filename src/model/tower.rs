@@ -1,4 +1,4 @@
-use std::{cell::RefCell, rc::Rc, time::Duration};
+use std::{cell::RefCell, rc::Rc};
 
 use super::{damage::Damage, enemy::Enemy, point::Point, road::Road, trajectory::Trajectory};
 
@@ -13,7 +13,7 @@ impl Aim {
         Self { aim: aim.clone() }
     }
 
-    pub fn is_in_shoot_range(&self, tower: &Tower, trajectory: &dyn Trajectory) -> bool {
+    pub fn is_in_shoot_range(&self, tower: &dyn Tower, trajectory: &dyn Trajectory) -> bool {
         match self.aim.as_ref() {
             Some(aimcell) => {
                 let aim = aimcell.borrow();
@@ -42,14 +42,20 @@ impl Aim {
     }
 }
 
-pub struct Tower {
+pub trait Tower {
+    fn position(&self) -> &Point;
+    fn range(&self) -> f32;
+    fn on_update(&mut self, road: &dyn Road);
+}
+
+pub struct BasicTower {
     damage: Damage,
     range: f32,
     aim: Aim,
     position: Point,
 }
 
-impl Tower {
+impl BasicTower {
     pub fn new(damage: Damage, radius: f32, position: Point) -> Self {
         Self {
             damage: damage,
@@ -57,14 +63,6 @@ impl Tower {
             aim: Aim::new(None),
             position: position,
         }
-    }
-
-    pub fn position(&self) -> &Point {
-        &self.position
-    }
-
-    pub fn range(&self) -> f32 {
-        self.range
     }
 
     fn shoot(&mut self) {
@@ -92,8 +90,18 @@ impl Tower {
 
         self.aim = Aim::new(random_chosen_enemy)
     }
+}
 
-    pub fn on_update(&mut self, _: Duration, road: &dyn Road) {
+impl Tower for BasicTower {
+    fn position(&self) -> &Point {
+        &self.position
+    }
+
+    fn range(&self) -> f32 {
+        self.range
+    }
+
+    fn on_update(&mut self, road: &dyn Road) {
         self.update_aim(road);
         self.shoot();
     }

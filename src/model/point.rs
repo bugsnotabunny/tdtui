@@ -1,5 +1,6 @@
 use std::ops::{Add, Mul, Sub};
 
+#[derive(Debug, PartialEq, Clone, Default)]
 pub struct Point {
     pub x: f32,
     pub y: f32,
@@ -16,12 +17,6 @@ impl Point {
             x: (self.x / len),
             y: (self.y / len),
         }
-    }
-}
-
-impl Default for Point {
-    fn default() -> Self {
-        Self { x: 0.0, y: 0.0 }
     }
 }
 
