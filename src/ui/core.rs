@@ -110,16 +110,20 @@ impl Screen {
     }
 
     fn draw_impl(frame: &mut Frame, camera: &Camera, game_model: &impl GameModel) {
-        let road_drawable = RoadDrawable::new(game_model.road());
-        road_drawable.draw(frame, camera, game_model);
+        let drawable = RoadDrawable::new(game_model.road());
+        drawable.draw(frame, camera, game_model);
+
         for enemy in game_model.road().enemies().iter() {
             enemy.borrow().draw(frame, camera, game_model);
         }
+
         for tower in game_model.towers() {
             let drawable = TowerDrawable {
                 tower: tower.as_ref(),
             };
             drawable.draw(frame, camera, game_model);
         }
+
+        game_model.wallet().draw(frame, camera, game_model)
     }
 }

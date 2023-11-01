@@ -1,4 +1,4 @@
-use std::{io, time::Duration};
+use std::{error::Error, io, time::Duration};
 
 use crossterm::event::{
     self, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers, MouseButton, MouseEvent,
@@ -178,5 +178,5 @@ fn match_mouse_kind(event: MouseEvent, info: ScreenInfo) -> InputEvent {
 }
 
 pub trait HandleEvent {
-    fn handle(&mut self, event: InputEvent);
+    fn handle(&mut self, event: InputEvent) -> Result<(), Box<dyn Error>>;
 }

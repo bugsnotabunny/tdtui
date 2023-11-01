@@ -2,7 +2,7 @@ pub mod input;
 pub mod model;
 pub mod ui;
 
-use std::{io, time::Duration};
+use std::{error::Error, io, time::Duration};
 
 use input::core::{poll_event, HandleEvent, InputEvent, ScreenInfo};
 use model::{
@@ -12,7 +12,7 @@ use model::{
     point::Point,
     road::ConcreteRoad,
     spawner::SpawnerWithCooldown,
-    tower::BasicTower,
+    tower::ArcherTower,
     trajectory::NoiseTrajectory,
 };
 use ui::core::{Camera, Screen};
@@ -73,12 +73,12 @@ impl<G: GameModel + HandleEvent> App<G> {
             InputEvent::GameQuit => self.keep_going = false,
             _ => {}
         }
-        self.camera.handle(event.clone());
-        self.game_model.handle(event.clone());
+        let _ = self.camera.handle(event.clone());
+        let _ = self.game_model.handle(event.clone());
     }
 }
 
-fn main() -> io::Result<()> {
+fn main() -> Result<(), Box<dyn Error>> {
     let target_fps = 60;
     let tick_duration = Duration::from_millis(1000) / target_fps;
 
@@ -86,16 +86,7 @@ fn main() -> io::Result<()> {
     let spawner = SpawnerWithCooldown::new(Duration::from_secs_f32(1.0));
     let trajectory = NoiseTrajectory::new(&perlin);
     let road = ConcreteRoad::new(trajectory, spawner);
-    let mut model = ConcreteGameModel::new(road);
-
-    model.build(Box::new(BasicTower::new(
-        Damage {
-            value: 1,
-            kind: DamageType::KINNETIC,
-        },
-        100.0,
-        Point { x: 5.0, y: 5.0 },
-    )));
+    let model = ConcreteGameModel::new(road);
 
     let ui = Screen::new()?;
 

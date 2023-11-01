@@ -1,6 +1,12 @@
 use std::{cell::RefCell, rc::Rc};
 
-use super::{damage::Damage, enemy::Enemy, point::Point, road::Road, trajectory::Trajectory};
+use super::{
+    damage::{Damage, DamageType},
+    enemy::Enemy,
+    point::Point,
+    road::Road,
+    trajectory::Trajectory,
+};
 
 use rand::seq::IteratorRandom;
 
@@ -46,27 +52,31 @@ pub trait Tower {
     fn position(&self) -> &Point;
     fn range(&self) -> f32;
     fn on_update(&mut self, road: &dyn Road);
+    fn cost(&self) -> u64;
 }
 
-pub struct BasicTower {
-    damage: Damage,
-    range: f32,
+pub struct ArcherTower {
     aim: Aim,
     position: Point,
 }
 
-impl BasicTower {
-    pub fn new(damage: Damage, radius: f32, position: Point) -> Self {
+impl ArcherTower {
+    const RANGE: f32 = 100.0;
+    const COST: u64 = 10;
+    const DAMAGE: Damage = Damage {
+        value: 10,
+        kind: DamageType::KINNETIC,
+    };
+
+    pub fn new(position: Point) -> Self {
         Self {
-            damage: damage,
-            range: radius,
             aim: Aim::new(None),
             position: position,
         }
     }
 
     fn shoot(&mut self) {
-        self.aim.try_shoot(self.damage.clone())
+        self.aim.try_shoot(Self::DAMAGE.clone())
     }
 
     fn update_aim(&mut self, road: &dyn Road) {
@@ -83,7 +93,7 @@ impl BasicTower {
             .iter()
             .filter(|enemy| {
                 let enemypos = road.trajectory().get_point(enemy.borrow().position());
-                enemypos.distance(&self.position) < self.range
+                enemypos.distance(&self.position) < self.range()
             })
             .map(|rc| rc.clone())
             .choose(&mut rand::thread_rng());
@@ -92,13 +102,17 @@ impl BasicTower {
     }
 }
 
-impl Tower for BasicTower {
+impl Tower for ArcherTower {
     fn position(&self) -> &Point {
         &self.position
     }
 
     fn range(&self) -> f32 {
-        self.range
+        Self::RANGE
+    }
+
+    fn cost(&self) -> u64 {
+        Self::COST
     }
 
     fn on_update(&mut self, road: &dyn Road) {

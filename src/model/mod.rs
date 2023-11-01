@@ -7,3 +7,4 @@ pub mod road;
 pub mod spawner;
 pub mod tower;
 pub mod trajectory;
+pub mod wallet;
