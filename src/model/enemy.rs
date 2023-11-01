@@ -26,10 +26,7 @@ impl Enemy {
     }
 
     pub fn take_damage(&mut self, damage: Damage) {
-        match self.health.checked_sub(damage.value) {
-            Some(health) => self.health = health,
-            None => self.health = 0,
-        }
+        self.health = self.health.checked_sub(damage.value).unwrap_or(0);
     }
 
     fn move_forward(&mut self, delta_time: Duration, trajectory: &dyn Trajectory) {

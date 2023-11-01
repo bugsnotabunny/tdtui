@@ -1,6 +1,7 @@
-use std::{cell::RefCell, rc::Rc};
+use std::{cell::RefCell, rc::Rc, time::Duration};
 
 use super::{
+    clock::Clock,
     damage::{Damage, DamageType},
     enemy::Enemy,
     point::Point,
@@ -58,11 +59,13 @@ pub trait Tower {
 pub struct ArcherTower {
     aim: Aim,
     position: Point,
+    cooldown_clock: Clock,
 }
 
 impl ArcherTower {
     const RANGE: f32 = 100.0;
     const COST: u64 = 10;
+    const COOLDOWN: Duration = Duration::from_millis(1500);
     const DAMAGE: Damage = Damage {
         value: 10,
         kind: DamageType::KINNETIC,
@@ -72,6 +75,7 @@ impl ArcherTower {
         Self {
             aim: Aim::new(None),
             position: position,
+            cooldown_clock: Clock::from_now(),
         }
     }
 
@@ -117,6 +121,9 @@ impl Tower for ArcherTower {
 
     fn on_update(&mut self, road: &dyn Road) {
         self.update_aim(road);
-        self.shoot();
+        if self.cooldown_clock.elapsed() > Self::COOLDOWN {
+            self.shoot();
+            self.cooldown_clock.tick();
+        }
     }
 }

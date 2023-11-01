@@ -8,11 +8,8 @@ use input::core::{poll_event, HandleEvent, InputEvent, ScreenInfo};
 use model::{
     clock::Clock,
     core::{ConcreteGameModel, GameModel},
-    damage::{Damage, DamageType},
-    point::Point,
     road::ConcreteRoad,
     spawner::SpawnerWithCooldown,
-    tower::ArcherTower,
     trajectory::NoiseTrajectory,
 };
 use ui::core::{Camera, Screen};
@@ -86,7 +83,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     let spawner = SpawnerWithCooldown::new(Duration::from_secs_f32(1.0));
     let trajectory = NoiseTrajectory::new(&perlin);
     let road = ConcreteRoad::new(trajectory, spawner);
-    let model = ConcreteGameModel::new(road);
+    let mut model = ConcreteGameModel::new(road);
+    model.wallet_mut().add_money(1000);
 
     let ui = Screen::new()?;
 
