@@ -1,6 +1,7 @@
 use std::io::{self, stdout, Stdout};
 
 use crossterm::{
+    event::{DisableMouseCapture, EnableMouseCapture},
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
     ExecutableCommand,
 };
@@ -11,7 +12,7 @@ use ratatui::{
 
 use crate::model::core::GameModel;
 
-use super::road::RoadDrawable;
+use super::{road::RoadDrawable, tower::TowerDrawable};
 
 pub struct Camera {
     position: (f32, f32),
@@ -73,7 +74,7 @@ pub struct Screen {
 }
 
 pub trait Drawable {
-    fn draw(&self, frame: &mut Frame, camera: &Camera, game_model: &dyn GameModel);
+    fn draw(&self, frame: &mut Frame, camera: &Camera, game_model: &impl GameModel);
 }
 
 impl Screen {
@@ -85,27 +86,35 @@ impl Screen {
     pub fn init(&mut self) -> io::Result<()> {
         enable_raw_mode()?;
         stdout().execute(EnterAlternateScreen)?;
+        stdout().execute(EnableMouseCapture)?;
         Ok(())
     }
 
     pub fn kill(&mut self) -> io::Result<()> {
         disable_raw_mode()?;
         stdout().execute(LeaveAlternateScreen)?;
+        stdout().execute(DisableMouseCapture)?;
         Ok(())
     }
 
     pub fn draw_frame(&mut self, camera: &Camera, game_model: &impl GameModel) -> io::Result<()> {
         self.terminal
             .draw(|frame| Self::draw_impl(frame, camera, game_model))?;
+        
         Ok(())
     }
 
-    fn draw_impl(frame: &mut Frame, camera: &Camera, game_model: &dyn GameModel) {
+    fn draw_impl(frame: &mut Frame, camera: &Camera, game_model: &impl GameModel) {
         let road_drawable = RoadDrawable::new(game_model.road());
         road_drawable.draw(frame, camera, game_model);
-
         for enemy in game_model.road().enemies().iter() {
             enemy.borrow().draw(frame, camera, game_model);
+        }
+        for tower in game_model.towers() {
+            let drawable = TowerDrawable {
+                tower: tower.as_ref(),
+            };
+            drawable.draw(frame, camera, game_model);
         }
     }
 }

@@ -3,7 +3,7 @@ pub mod input;
 pub mod model;
 pub mod ui;
 
-use input::core::{poll_events, HandleEvents, InputMask};
+use input::core::{poll_event, HandleEvent, InputEvent};
 use model::{
     clock::Clock,
     core::{ConcreteGameModel, GameModel},
@@ -11,21 +11,21 @@ use model::{
     point::Point,
     road::ConcreteRoad,
     spawner::SpawnerWithCooldown,
-    tower::Tower,
+    tower::BasicTower,
     trajectory::NoiseTrajectory,
 };
 use ui::core::{Camera, Screen};
 
 use noise::Perlin;
 
-struct App<G: GameModel> {
+struct App<G: GameModel + HandleEvent> {
     game_model: G,
     screen: Screen,
     camera: Camera,
     keep_going: bool,
 }
 
-impl<G: GameModel> App<G> {
+impl<G: GameModel + HandleEvent> App<G> {
     pub fn new(model: G, ui: Screen) -> Self {
         Self {
             game_model: model,
@@ -46,10 +46,13 @@ impl<G: GameModel> App<G> {
     fn run_impl(&mut self, tick_duration: Duration) -> io::Result<()> {
         let mut clock = Clock::from_now();
         while self.keep_going {
-            let delta_time = clock.elapsed();
-            let timeout = tick_duration.saturating_sub(delta_time);
-            self.handle_events(poll_events(timeout)?);
+            while clock.elapsed() < tick_duration {
+                let timeout = tick_duration.saturating_sub(clock.elapsed());
+                let event = poll_event(timeout)?;
+                self.handle_event(event);
+            }
 
+            let delta_time = clock.elapsed();
             if delta_time >= tick_duration {
                 self.game_model.update(delta_time);
                 self.screen.draw_frame(&self.camera, &self.game_model)?;
@@ -61,18 +64,19 @@ impl<G: GameModel> App<G> {
         Ok(())
     }
 
-    fn handle_events(&mut self, events: InputMask) {
-        match events {
-            InputMask::Quitted => self.keep_going = false,
+    fn handle_event(&mut self, event: InputEvent) {
+        match event {
+            InputEvent::GameQuit => self.keep_going = false,
             _ => {}
         }
-
-        self.camera.handle(events);
+        self.camera.handle(event.clone());
+        self.game_model.handle(event.clone());
     }
 }
 
 fn main() -> io::Result<()> {
-    let tick_duration = Duration::from_millis(100);
+    let target_fps = 60;
+    let tick_duration = Duration::from_millis(1000 / target_fps);
 
     let perlin = Perlin::new(10);
     let spawner = SpawnerWithCooldown::new(Duration::from_secs_f32(1.0));
@@ -80,14 +84,14 @@ fn main() -> io::Result<()> {
     let road = ConcreteRoad::new(trajectory, spawner);
     let mut model = ConcreteGameModel::new(road);
 
-    model.build(Tower::new(
+    model.build(Box::new(BasicTower::new(
         Damage {
             value: 1,
             kind: DamageType::KINNETIC,
         },
         100.0,
         Point { x: 5.0, y: 5.0 },
-    ));
+    )));
 
     let ui = Screen::new()?;
 

@@ -27,7 +27,7 @@ impl RoadDrawable {
 }
 
 impl Drawable for RoadDrawable {
-    fn draw(&self, frame: &mut Frame, camera: &Camera, _: &dyn GameModel) {
+    fn draw(&self, frame: &mut Frame, camera: &Camera, _: &impl GameModel) {
         let datasets = vec![Dataset::default()
             .marker(symbols::Marker::Braille)
             .style(Style::default().fg(Color::Green))
