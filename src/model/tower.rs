@@ -34,6 +34,10 @@ impl Aim {
         }
     }
 
+    pub fn is_alive(&self) -> bool {
+        self.aim.is_some() && !self.aim.as_ref().unwrap().borrow().is_dead()
+    }
+
     pub fn try_shoot(&mut self, damage: Damage, on_death: impl FnOnce(u64)) {
         if !self.is_some() {
             return;
@@ -75,7 +79,9 @@ macro_rules! create_tower_type {
             }
 
             fn update_aim(&mut self, game_model: &dyn GameModel) {
-                if !self.aim.is_in_shoot_range(self, game_model.trajectory()) {
+                if !self.aim.is_in_shoot_range(self, game_model.trajectory())
+                    || !self.aim.is_alive()
+                {
                     self.aim = Aim::new(None);
                 }
 
@@ -114,7 +120,6 @@ macro_rules! create_tower_type {
         impl UpdatableObject for $a {
             fn on_update(&mut self, game_model: &mut dyn GameModel, _: Duration) {
                 self.update_aim(game_model);
-
                 if self.cooldown_clock.elapsed() > Self::COOLDOWN {
                     self.shoot(game_model);
                     self.cooldown_clock.tick();
