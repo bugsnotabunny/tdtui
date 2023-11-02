@@ -13,7 +13,8 @@ use super::{
 
 use rand::seq::IteratorRandom;
 
-pub struct Aim {
+#[derive(Default)]
+struct Aim {
     aim: Option<Rc<RefCell<dyn Enemy>>>,
 }
 
@@ -63,12 +64,12 @@ pub struct ArcherTower {
 }
 
 impl ArcherTower {
-    const RANGE: f32 = 100.0;
-    const COST: u64 = 10;
     const COOLDOWN: Duration = Duration::from_millis(1500);
+    const COST: u64 = 10;
+    const RANGE: f32 = 50.0;
     const DAMAGE: Damage = Damage {
         value: 10,
-        kind: DamageType::KINNETIC,
+        kind: DamageType::Kinnetic,
     };
 
     pub fn new(position: Point) -> Self {
@@ -80,31 +81,13 @@ impl ArcherTower {
     }
 
     fn shoot(&mut self, game_model: &mut dyn GameModel) {
-        self.aim.try_shoot(Self::DAMAGE.clone(), |reward| {
-            game_model.wallet_mut().add_money(reward);
-        });
+        shoot_impl(&mut self.aim, Self::DAMAGE, game_model);
     }
 
     fn update_aim(&mut self, game_model: &dyn GameModel) {
-        if !self.aim.is_in_shoot_range(self, game_model.trajectory()) {
-            self.aim = Aim::new(None);
-        }
-
-        if self.aim.is_some() {
-            return;
-        }
-
-        let random_chosen_enemy = game_model
-            .enemies()
-            .iter()
-            .filter(|enemy| {
-                let enemypos = game_model.trajectory().get_point(enemy.borrow().position());
-                enemypos.distance(&self.position) < self.range()
-            })
-            .map(|rc| rc.clone())
-            .choose(&mut rand::thread_rng());
-
-        self.aim = Aim::new(random_chosen_enemy)
+        let mut aim = std::mem::take(&mut self.aim);
+        update_aim_impl(&mut aim, self, game_model);
+        self.aim = aim;
     }
 }
 
@@ -113,12 +96,12 @@ impl Tower for ArcherTower {
         &self.position
     }
 
-    fn range(&self) -> f32 {
-        Self::RANGE
-    }
-
     fn cost(&self) -> u64 {
         Self::COST
+    }
+
+    fn range(&self) -> f32 {
+        Self::RANGE
     }
 }
 
@@ -130,4 +113,90 @@ impl UpdatableObject for ArcherTower {
             self.cooldown_clock.tick();
         }
     }
+}
+
+pub struct MageTower {
+    aim: Aim,
+    position: Point,
+    cooldown_clock: Clock,
+}
+
+impl MageTower {
+    const COOLDOWN: Duration = Duration::from_millis(2000);
+    const COST: u64 = 20;
+    const RANGE: f32 = 100.0;
+    const DAMAGE: Damage = Damage {
+        value: 5,
+        kind: DamageType::Magic,
+    };
+
+    pub fn new(position: Point) -> Self {
+        Self {
+            aim: Aim::new(None),
+            position: position,
+            cooldown_clock: Clock::from_now(),
+        }
+    }
+
+    fn shoot(&mut self, game_model: &mut dyn GameModel) {
+        shoot_impl(&mut self.aim, Self::DAMAGE, game_model);
+    }
+
+    fn update_aim(&mut self, game_model: &dyn GameModel) {
+        let mut aim = std::mem::take(&mut self.aim);
+        update_aim_impl(&mut aim, self, game_model);
+        self.aim = aim;
+    }
+}
+
+impl Tower for MageTower {
+    fn position(&self) -> &Point {
+        &self.position
+    }
+
+    fn cost(&self) -> u64 {
+        Self::COST
+    }
+
+    fn range(&self) -> f32 {
+        Self::RANGE
+    }
+}
+
+impl UpdatableObject for MageTower {
+    fn on_update(&mut self, game_model: &mut dyn GameModel, _: Duration) {
+        self.update_aim(game_model);
+        if self.cooldown_clock.elapsed() > Self::COOLDOWN {
+            self.shoot(game_model);
+            self.cooldown_clock.tick();
+        }
+    }
+}
+
+fn shoot_impl(aim: &mut Aim, damage: Damage, game_model: &mut dyn GameModel) {
+    aim.try_shoot(damage, |reward| {
+        game_model.wallet_mut().add_money(reward);
+    });
+}
+
+fn update_aim_impl(aim: &mut Aim, tower: &impl Tower, game_model: &dyn GameModel) {
+    if !aim.is_in_shoot_range(tower, game_model.trajectory()) {
+        *aim = Aim::new(None);
+    }
+
+    if aim.is_some() {
+        return;
+    }
+
+    let random_chosen_enemy = game_model
+        .enemies()
+        .iter()
+        .filter(|enemy| {
+            let enemypos = game_model.trajectory().get_point(enemy.borrow().position());
+            enemypos.distance(&tower.position()) < tower.range()
+        })
+        .map(|rc| rc.clone())
+        .choose(&mut rand::thread_rng());
+
+    *aim = Aim::new(random_chosen_enemy);
 }
