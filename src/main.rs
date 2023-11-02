@@ -72,8 +72,8 @@ impl<G: GameModel + HandleEvent> App<G> {
     }
 
     fn update(&mut self) -> io::Result<()> {
-        let delta_time = self.update_clock.elapsed();
         if self.state != AppState::Paused {
+            let delta_time = self.update_clock.elapsed();
             self.game_model.update(delta_time);
         }
         self.screen.draw_frame(&self.camera, &self.game_model)?;
@@ -84,8 +84,10 @@ impl<G: GameModel + HandleEvent> App<G> {
 
 impl<G: GameModel + HandleEvent> HandleEvent for App<G> {
     fn handle(&mut self, event: InputEvent) -> Result<(), Box<dyn Error>> {
-        self.camera.handle(event.clone())?;
-        self.game_model.handle(event.clone())?;
+        if self.state != AppState::Paused {
+            self.camera.handle(event.clone())?;
+            self.game_model.handle(event.clone())?;
+        }
         match event {
             InputEvent::GameQuit => self.state = AppState::Closing,
             InputEvent::GamePauseSwitch => {
