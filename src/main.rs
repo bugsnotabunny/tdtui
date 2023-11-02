@@ -4,7 +4,10 @@ pub mod ui;
 
 use std::{error::Error, io, time::Duration};
 
-use input::core::{poll_event, HandleEvent, InputEvent, ScreenInfo};
+use input::{
+    core::{poll_event, HandleEvent, InputEvent, ScreenInfo},
+    tower_selector::TowerSelector,
+};
 use model::{
     clock::Clock,
     core::{ConcreteGameModel, GameModel},
@@ -20,8 +23,9 @@ struct App<G: GameModel + HandleEvent> {
     game_model: G,
     screen: Screen,
     camera: Camera,
-    keep_going: bool,
+    tower_switcher: TowerSelector,
     update_clock: Clock,
+    keep_going: bool,
 }
 
 impl<G: GameModel + HandleEvent> App<G> {
@@ -30,6 +34,7 @@ impl<G: GameModel + HandleEvent> App<G> {
             game_model: model,
             screen: ui,
             camera: Camera::default(),
+            tower_switcher: TowerSelector::default(),
             update_clock: Clock::from_now(),
             keep_going: true,
         }
@@ -61,7 +66,8 @@ impl<G: GameModel + HandleEvent> App<G> {
     fn on_tick(&mut self) -> io::Result<()> {
         let delta_time = self.update_clock.elapsed();
         self.game_model.update(delta_time);
-        self.screen.draw_frame(&self.camera, &self.game_model)?;
+        self.screen
+            .draw_frame(&self.camera, &self.tower_switcher, &self.game_model)?;
         self.update_clock.tick();
         Ok(())
     }

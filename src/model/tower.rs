@@ -114,6 +114,7 @@ macro_rules! create_tower_type {
         impl UpdatableObject for $a {
             fn on_update(&mut self, game_model: &mut dyn GameModel, _: Duration) {
                 self.update_aim(game_model);
+
                 if self.cooldown_clock.elapsed() > Self::COOLDOWN {
                     self.shoot(game_model);
                     self.cooldown_clock.tick();

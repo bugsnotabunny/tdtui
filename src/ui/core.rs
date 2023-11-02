@@ -10,7 +10,10 @@ use ratatui::{
     Frame, Terminal,
 };
 
-use crate::model::{core::GameModel, point::Point};
+use crate::{
+    input::tower_selector::TowerSelector,
+    model::{core::GameModel, point::Point},
+};
 
 use super::road::RoadDrawable;
 
@@ -36,6 +39,12 @@ impl Camera {
         Layout::default()
             .direction(Direction::Horizontal)
             .constraints([Constraint::Percentage(100), Constraint::Percentage(100)])
+    }
+
+    pub fn ui_layout(&self) -> Layout {
+        Layout::default()
+            .direction(Direction::Vertical)
+            .constraints([Constraint::Max(1), Constraint::Min(0)])
     }
 
     pub fn scale(&self) -> f32 {
@@ -108,9 +117,16 @@ impl Screen {
         self.terminal.size()
     }
 
-    pub fn draw_frame(&mut self, camera: &Camera, game_model: &impl GameModel) -> io::Result<()> {
-        self.terminal
-            .draw(|frame| Self::draw_impl(frame, camera, game_model))?;
+    pub fn draw_frame(
+        &mut self,
+        camera: &Camera,
+        tower_switcher: &TowerSelector,
+        game_model: &impl GameModel,
+    ) -> io::Result<()> {
+        self.terminal.draw(|frame| {
+            tower_switcher.draw(frame, camera, game_model);
+            Self::draw_impl(frame, camera, game_model)
+        })?;
 
         Ok(())
     }
