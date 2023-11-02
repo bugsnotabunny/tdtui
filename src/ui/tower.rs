@@ -1,5 +1,5 @@
 use ratatui::{
-    style::Color,
+    style::{Color, Stylize},
     widgets::canvas::{Canvas, Points},
 };
 
@@ -21,7 +21,7 @@ impl Drawable for ArcherTower {
             .marker(ratatui::symbols::Marker::Dot)
             .paint(|ctx| {
                 if camera.allows_more_detail() {
-                    ctx.print(self_pos.x as f64, self_pos.y as f64, "".trim())
+                    ctx.print(self_pos.x as f64, self_pos.y as f64, "".green())
                 } else {
                     ctx.draw(&Points {
                         coords: &[(self_pos.x as f64, self_pos.y as f64)],
