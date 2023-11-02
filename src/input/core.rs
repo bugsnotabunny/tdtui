@@ -78,6 +78,7 @@ impl MouseInput {
 #[derive(Clone, PartialEq, Debug)]
 pub enum InputEvent {
     GameQuit,
+    GamePauseSwitch,
     CameraRight,
     CameraLeft,
     CameraUp,
@@ -117,6 +118,13 @@ fn match_key(key: KeyEvent) -> InputEvent {
             kind: _,
             state: _,
         } => InputEvent::GameQuit,
+
+        KeyEvent {
+            code: KeyCode::Char('p'),
+            modifiers: _,
+            kind: _,
+            state: _,
+        } => InputEvent::GamePauseSwitch,
 
         KeyEvent {
             code: KeyCode::Char('d'),

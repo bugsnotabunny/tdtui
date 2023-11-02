@@ -16,12 +16,21 @@ use ui::core::{Camera, Screen};
 
 use noise::Perlin;
 
+#[derive(Debug, PartialEq, Eq)]
+enum AppState {
+    NotStarted,
+    Paused,
+    Running,
+    Closing,
+    Closed,
+}
+
 struct App<G: GameModel + HandleEvent> {
     game_model: G,
     screen: Screen,
     camera: Camera,
     update_clock: Clock,
-    keep_going: bool,
+    state: AppState,
 }
 
 impl<G: GameModel + HandleEvent> App<G> {
@@ -31,48 +40,65 @@ impl<G: GameModel + HandleEvent> App<G> {
             screen: ui,
             camera: Camera::default(),
             update_clock: Clock::from_now(),
-            keep_going: true,
+            state: AppState::NotStarted,
         }
     }
 
     pub fn run(&mut self, tick_duration: Duration) -> io::Result<()> {
+        self.state = AppState::Running;
         self.screen.init()?;
         let run_res = self.run_impl(tick_duration);
         self.screen.kill()?;
         run_res?;
+        self.state = AppState::Closed;
         Ok(())
     }
 
     fn run_impl(&mut self, tick_duration: Duration) -> io::Result<()> {
-        while self.keep_going {
+        while self.state != AppState::Closing {
             while self.update_clock.elapsed() < tick_duration {
                 let timeout = tick_duration.saturating_sub(self.update_clock.elapsed());
                 let screen_info =
                     ScreenInfo::from_frame_size(self.camera.clone(), self.screen.size()?);
                 let event = poll_event(timeout, screen_info)?;
-                self.handle_event(event);
+                let _ = self.handle(event);
             }
-            self.on_tick()?;
-            self.keep_going &= !self.game_model.is_over();
+            self.update()?;
+            if self.game_model.is_over() {
+                self.state = AppState::Closing
+            }
         }
         Ok(())
     }
 
-    fn on_tick(&mut self) -> io::Result<()> {
+    fn update(&mut self) -> io::Result<()> {
         let delta_time = self.update_clock.elapsed();
-        self.game_model.update(delta_time);
+        if self.state != AppState::Paused {
+            self.game_model.update(delta_time);
+        }
         self.screen.draw_frame(&self.camera, &self.game_model)?;
         self.update_clock.tick();
         Ok(())
     }
+}
 
-    fn handle_event(&mut self, event: InputEvent) {
+impl<G: GameModel + HandleEvent> HandleEvent for App<G> {
+    fn handle(&mut self, event: InputEvent) -> Result<(), Box<dyn Error>> {
+        self.camera.handle(event.clone())?;
+        self.game_model.handle(event.clone())?;
         match event {
-            InputEvent::GameQuit => self.keep_going = false,
+            InputEvent::GameQuit => self.state = AppState::Closing,
+            InputEvent::GamePauseSwitch => {
+                self.state = if self.state == AppState::Paused {
+                    self.update_clock.tick();
+                    AppState::Running
+                } else {
+                    AppState::Paused
+                }
+            }
             _ => {}
         }
-        let _ = self.camera.handle(event.clone());
-        let _ = self.game_model.handle(event.clone());
+        Ok(())
     }
 }
 
