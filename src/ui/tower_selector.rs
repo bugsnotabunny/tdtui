@@ -5,7 +5,7 @@ use ratatui::{
     Frame,
 };
 
-use crate::{input::tower_selector::TowerSelector, model::core::GameModel};
+use crate::model::{core::GameModel, tower_selector::TowerSelector};
 
 use super::core::{Camera, Drawable};
 

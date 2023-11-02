@@ -87,6 +87,7 @@ pub enum InputEvent {
     CameraDrag(Point),
     MousePressedL(MouseInput),
     MousePressedR(MouseInput),
+    TowerSelectorNext,
     None,
     Unknown,
 }
@@ -158,6 +159,13 @@ fn match_key(key: KeyEvent) -> InputEvent {
             kind: _,
             state: _,
         } => InputEvent::CameraScaleDown,
+
+        KeyEvent {
+            code: KeyCode::Tab,
+            modifiers: _,
+            kind: _,
+            state: _,
+        } => InputEvent::TowerSelectorNext,
 
         _ => InputEvent::Unknown,
     }

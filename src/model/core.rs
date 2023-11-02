@@ -2,8 +2,10 @@ use std::{cell::RefCell, rc::Rc, time::Duration};
 
 use super::{
     enemy::Enemy,
+    point::Point,
     spawner::Spawner,
     tower::Tower,
+    tower_selector::TowerSelector,
     trajectory::Trajectory,
     wallet::{NotEnoughMoneyErr, Wallet},
 };
@@ -14,12 +16,12 @@ pub trait GameModel {
     fn is_over(&self) -> bool;
     fn towers(&self) -> &Vec<Box<RefCell<dyn Tower>>>;
     fn wallet(&self) -> &Wallet;
+    fn selector(&self) -> &TowerSelector;
     fn trajectory(&self) -> &dyn Trajectory;
     fn enemies(&self) -> &Vec<Rc<RefCell<dyn Enemy>>>;
 
-    fn towers_mut(&mut self) -> &mut Vec<Box<RefCell<dyn Tower>>>;
+    fn selector_mut(&mut self) -> &mut TowerSelector;
     fn wallet_mut(&mut self) -> &mut Wallet;
-    fn enemies_mut(&mut self) -> &mut Vec<Rc<RefCell<dyn Enemy>>>;
 }
 
 pub trait UpdatableObject {
@@ -29,6 +31,7 @@ pub trait UpdatableObject {
 pub struct ConcreteGameModel<S: Spawner, T: Trajectory> {
     trajectory: T,
     spawner: S,
+    tower_selector: TowerSelector,
     towers: Vec<Box<RefCell<dyn Tower>>>,
     enemies: Vec<Rc<RefCell<dyn Enemy>>>,
     player_wallet: Wallet,
@@ -44,29 +47,35 @@ impl<S: Spawner, T: Trajectory> ConcreteGameModel<S, T> {
         Self {
             towers: Vec::new(),
             enemies: Vec::new(),
+            tower_selector: TowerSelector::default(),
             player_wallet: wallet,
             spawner: spawner,
             trajectory: trajectory,
         }
     }
 
-    pub fn maybe_build(&mut self, tower: Box<RefCell<dyn Tower>>) -> Result<(), NotEnoughMoneyErr> {
+    pub fn maybe_build_from_selector(&mut self, position: Point) -> Result<(), NotEnoughMoneyErr> {
+        let tower = self.selector().produce_current(position);
         let cost = tower.borrow().cost();
         self.player_wallet.pay_to_do(cost, || {
             self.towers.push(tower);
         })
     }
+
+    pub fn switch_selector(&mut self) {
+        self.tower_selector.to_next();
+    }
 }
 
 impl<S: Spawner, T: Trajectory> GameModel for ConcreteGameModel<S, T> {
     fn update(&mut self, delta_time: Duration) {
-        let enemies = std::mem::take(self.enemies_mut());
+        let enemies = std::mem::take(&mut self.enemies);
         for enemy in enemies.iter() {
             enemy.borrow_mut().on_update(self, delta_time);
         }
         self.enemies = enemies;
 
-        let towers = std::mem::take(self.towers_mut());
+        let towers = std::mem::take(&mut self.towers);
         for tower in towers.iter() {
             tower.borrow_mut().on_update(self, delta_time);
         }
@@ -74,6 +83,10 @@ impl<S: Spawner, T: Trajectory> GameModel for ConcreteGameModel<S, T> {
 
         self.enemies.retain(|enemy| !enemy.borrow().is_dead());
         self.maybe_spawn_new_enemy();
+    }
+
+    fn selector(&self) -> &TowerSelector {
+        &self.tower_selector
     }
 
     fn wallet(&self) -> &Wallet {
@@ -100,12 +113,8 @@ impl<S: Spawner, T: Trajectory> GameModel for ConcreteGameModel<S, T> {
         &mut self.player_wallet
     }
 
-    fn enemies_mut(&mut self) -> &mut Vec<Rc<RefCell<dyn Enemy>>> {
-        &mut self.enemies
-    }
-
-    fn towers_mut(&mut self) -> &mut Vec<Box<RefCell<dyn Tower>>> {
-        &mut self.towers
+    fn selector_mut(&mut self) -> &mut TowerSelector {
+        &mut self.tower_selector
     }
 }
 

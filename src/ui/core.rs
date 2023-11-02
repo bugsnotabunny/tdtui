@@ -10,10 +10,7 @@ use ratatui::{
     Frame, Terminal,
 };
 
-use crate::{
-    input::tower_selector::TowerSelector,
-    model::{core::GameModel, point::Point},
-};
+use crate::model::{core::GameModel, point::Point};
 
 use super::road::RoadDrawable;
 
@@ -117,16 +114,9 @@ impl Screen {
         self.terminal.size()
     }
 
-    pub fn draw_frame(
-        &mut self,
-        camera: &Camera,
-        tower_switcher: &TowerSelector,
-        game_model: &impl GameModel,
-    ) -> io::Result<()> {
-        self.terminal.draw(|frame| {
-            tower_switcher.draw(frame, camera, game_model);
-            Self::draw_impl(frame, camera, game_model)
-        })?;
+    pub fn draw_frame(&mut self, camera: &Camera, game_model: &impl GameModel) -> io::Result<()> {
+        self.terminal
+            .draw(|frame| Self::draw_impl(frame, camera, game_model))?;
 
         Ok(())
     }
@@ -143,6 +133,7 @@ impl Screen {
             tower.borrow().draw(frame, camera, game_model);
         }
 
+        game_model.selector().draw(frame, camera, game_model);
         game_model.wallet().draw(frame, camera, game_model)
     }
 }
