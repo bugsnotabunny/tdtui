@@ -20,10 +20,14 @@ impl Drawable for ArcherTower {
         let self_as_widget = Canvas::default()
             .marker(ratatui::symbols::Marker::Dot)
             .paint(|ctx| {
-                ctx.draw(&Points {
-                    coords: &[(self_pos.x as f64, self_pos.y as f64)],
-                    color: Color::Green,
-                })
+                if camera.allows_more_detail() {
+                    ctx.print(self_pos.x as f64, self_pos.y as f64, "".trim())
+                } else {
+                    ctx.draw(&Points {
+                        coords: &[(self_pos.x as f64, self_pos.y as f64)],
+                        color: Color::Green,
+                    })
+                };
             })
             .x_bounds(camera.x_bounds(frame_w))
             .y_bounds(camera.y_bounds(frame_h));

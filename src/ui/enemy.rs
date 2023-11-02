@@ -20,7 +20,7 @@ impl Drawable for BasicEnemy {
 
         let paint_strat = |ctx: &mut Context| {
             if camera.allows_more_detail() {
-                ctx.print(self_pos.x as f64, self_pos.y as f64, "")
+                ctx.print(self_pos.x as f64, self_pos.y as f64, " ".trim())
             } else {
                 ctx.draw(&Points {
                     coords: &[(self_pos.x as f64, self_pos.y as f64)],

@@ -33,13 +33,14 @@ impl Aim {
         }
     }
 
-    pub fn try_shoot(&mut self, damage: Damage) {
+    pub fn try_shoot(&mut self, damage: Damage, on_death: impl FnOnce(u64)) {
         if !self.is_some() {
             return;
         }
         let aim = self.aim.as_ref().unwrap();
         aim.borrow_mut().take_damage(damage);
         if aim.borrow().is_dead() {
+            on_death(aim.borrow().reward());
             self.aim = None;
         }
     }
@@ -78,8 +79,10 @@ impl ArcherTower {
         }
     }
 
-    fn shoot(&mut self) {
-        self.aim.try_shoot(Self::DAMAGE.clone())
+    fn shoot(&mut self, game_model: &mut dyn GameModel) {
+        self.aim.try_shoot(Self::DAMAGE.clone(), |reward| {
+            game_model.wallet_mut().add_money(reward);
+        });
     }
 
     fn update_aim(&mut self, game_model: &dyn GameModel) {
@@ -120,10 +123,10 @@ impl Tower for ArcherTower {
 }
 
 impl UpdatableObject for ArcherTower {
-    fn on_update(&mut self, game_model: &dyn GameModel, _: Duration) {
+    fn on_update(&mut self, game_model: &mut dyn GameModel, _: Duration) {
         self.update_aim(game_model);
         if self.cooldown_clock.elapsed() > Self::COOLDOWN {
-            self.shoot();
+            self.shoot(game_model);
             self.cooldown_clock.tick();
         }
     }

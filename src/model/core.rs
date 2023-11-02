@@ -16,10 +16,14 @@ pub trait GameModel {
     fn wallet(&self) -> &Wallet;
     fn trajectory(&self) -> &dyn Trajectory;
     fn enemies(&self) -> &Vec<Rc<RefCell<dyn Enemy>>>;
+
+    fn towers_mut(&mut self) -> &mut Vec<Box<RefCell<dyn Tower>>>;
+    fn wallet_mut(&mut self) -> &mut Wallet;
+    fn enemies_mut(&mut self) -> &mut Vec<Rc<RefCell<dyn Enemy>>>;
 }
 
 pub trait UpdatableObject {
-    fn on_update(&mut self, game_model: &dyn GameModel, delta_time: Duration);
+    fn on_update(&mut self, game_model: &mut dyn GameModel, delta_time: Duration);
 }
 
 pub struct ConcreteGameModel<S: Spawner, T: Trajectory> {
@@ -56,14 +60,19 @@ impl<S: Spawner, T: Trajectory> ConcreteGameModel<S, T> {
 
 impl<S: Spawner, T: Trajectory> GameModel for ConcreteGameModel<S, T> {
     fn update(&mut self, delta_time: Duration) {
-        for tower in self.towers.iter() {
-            tower.borrow_mut().on_update(self, delta_time);
-        }
-        self.enemies.retain(|enemy| !enemy.borrow().is_dead());
-        for enemy in self.enemies.iter() {
+        let enemies = std::mem::take(self.enemies_mut());
+        for enemy in enemies.iter() {
             enemy.borrow_mut().on_update(self, delta_time);
         }
+        self.enemies = enemies;
 
+        let towers = std::mem::take(self.towers_mut());
+        for tower in towers.iter() {
+            tower.borrow_mut().on_update(self, delta_time);
+        }
+        self.towers = towers;
+
+        self.enemies.retain(|enemy| !enemy.borrow().is_dead());
         self.maybe_spawn_new_enemy();
     }
 
@@ -85,6 +94,18 @@ impl<S: Spawner, T: Trajectory> GameModel for ConcreteGameModel<S, T> {
 
     fn enemies(&self) -> &Vec<Rc<RefCell<dyn Enemy>>> {
         &self.enemies
+    }
+
+    fn wallet_mut(&mut self) -> &mut Wallet {
+        &mut self.player_wallet
+    }
+
+    fn enemies_mut(&mut self) -> &mut Vec<Rc<RefCell<dyn Enemy>>> {
+        &mut self.enemies
+    }
+
+    fn towers_mut(&mut self) -> &mut Vec<Box<RefCell<dyn Tower>>> {
+        &mut self.towers
     }
 }
 

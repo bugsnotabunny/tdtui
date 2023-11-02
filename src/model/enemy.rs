@@ -12,20 +12,23 @@ pub trait Enemy: Drawable + UpdatableObject {
     fn position(&self) -> f32;
     fn take_damage(&mut self, damage: Damage);
     fn is_dead(&self) -> bool;
+    fn reward(&self) -> u64;
 }
 
 pub struct BasicEnemy {
     health: u8,
     speed: f32,
     position: f32,
+    reward: u64,
 }
 
 impl BasicEnemy {
-    pub fn new(health: u8, speed: f32, position: f32) -> Self {
+    pub fn new(health: u8, speed: f32, position: f32, reward: u64) -> Self {
         Self {
             health: health,
             speed: speed,
             position: position,
+            reward: reward,
         }
     }
 }
@@ -42,10 +45,14 @@ impl Enemy for BasicEnemy {
     fn is_dead(&self) -> bool {
         self.health == 0
     }
+
+    fn reward(&self) -> u64 {
+        self.reward
+    }
 }
 
 impl UpdatableObject for BasicEnemy {
-    fn on_update(&mut self, game_model: &dyn GameModel, delta_time: Duration) {
+    fn on_update(&mut self, game_model: &mut dyn GameModel, delta_time: Duration) {
         self.move_forward(delta_time, game_model.trajectory());
     }
 }
