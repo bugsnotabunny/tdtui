@@ -1,17 +1,22 @@
-use std::time::Duration;
+use std::{cell::RefCell, time::Duration};
 
-use super::{clock::Clock, enemy::BasicEnemy};
+use rand::{seq::SliceRandom, thread_rng};
+
+use super::{
+    clock::Clock,
+    enemy::{BasicEnemy, Enemy, EnemyWithKinneticResist, EnemyWithMagicResist},
+};
 
 pub trait Spawner {
-    fn maybe_spawn(&mut self) -> Option<BasicEnemy>;
+    fn maybe_spawn(&mut self) -> Option<Box<RefCell<dyn Enemy>>>;
 }
 
 #[derive(Default)]
 pub struct BasicSpawner {}
 
 impl Spawner for BasicSpawner {
-    fn maybe_spawn(&mut self) -> Option<BasicEnemy> {
-        Some(BasicEnemy::new(4.0, 5.0, 0.0, 3))
+    fn maybe_spawn(&mut self) -> Option<Box<RefCell<dyn Enemy>>> {
+        Some(Box::new(RefCell::new(BasicEnemy::new(4.0, 5.0, 0.0, 3))))
     }
 }
 
@@ -27,13 +32,30 @@ impl SpawnerWithCooldown {
             cooldown: cooldown,
         }
     }
+
+    fn produce_enemy() -> Box<RefCell<dyn Enemy>> {
+        let factories: [fn() -> Box<RefCell<dyn Enemy>>; 3] = [
+            || Box::new(RefCell::new(BasicEnemy::new(4.0, 5.0, 0.0, 3))),
+            || {
+                Box::new(RefCell::new(EnemyWithKinneticResist::new(
+                    4.0, 0.8, 5.0, 0.0, 3,
+                )))
+            },
+            || {
+                Box::new(RefCell::new(EnemyWithMagicResist::new(
+                    4.0, 0.6, 5.0, 0.0, 3,
+                )))
+            },
+        ];
+        (factories.choose(&mut thread_rng()).unwrap())()
+    }
 }
 
 impl Spawner for SpawnerWithCooldown {
-    fn maybe_spawn(&mut self) -> Option<BasicEnemy> {
+    fn maybe_spawn(&mut self) -> Option<Box<RefCell<dyn Enemy>>> {
         if self.last_spawn.elapsed() >= self.cooldown {
             self.last_spawn.tick();
-            return Some(BasicEnemy::new(4.0, 5.0, 0.0, 3));
+            return Some(Self::produce_enemy());
         }
         return None;
     }

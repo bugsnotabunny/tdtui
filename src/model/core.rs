@@ -128,8 +128,7 @@ impl<S: Spawner, T: Trajectory> ConcreteGameModel<S, T> {
     fn maybe_spawn_new_enemy(&mut self) -> bool {
         match self.spawner.maybe_spawn() {
             Some(enemy) => {
-                let enemy = Rc::new(RefCell::new(enemy));
-                self.enemies.push(enemy);
+                self.enemies.push(enemy.into());
                 true
             }
             None => false,

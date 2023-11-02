@@ -12,7 +12,7 @@ use crate::model::{
 use super::core::{Camera, Drawable};
 
 macro_rules! impl_drawable_for_enemy {
-    ($typename:ident) => {
+    ($typename:ident, $close_up:literal) => {
         impl Drawable for $typename {
             fn draw(
                 &self,
@@ -28,7 +28,7 @@ macro_rules! impl_drawable_for_enemy {
 
                 let paint_strat = |ctx: &mut Context| {
                     if camera.allows_more_detail() {
-                        ctx.print(self_pos.x as f64, self_pos.y as f64, "".light_red())
+                        ctx.print(self_pos.x as f64, self_pos.y as f64, $close_up.light_red())
                     } else {
                         ctx.draw(&Points {
                             coords: &[(self_pos.x as f64, self_pos.y as f64)],
@@ -49,6 +49,6 @@ macro_rules! impl_drawable_for_enemy {
     };
 }
 
-impl_drawable_for_enemy!(BasicEnemy);
-impl_drawable_for_enemy!(EnemyWithKinneticResist);
-impl_drawable_for_enemy!(EnemyWithMagicResist);
+impl_drawable_for_enemy!(BasicEnemy, "");
+impl_drawable_for_enemy!(EnemyWithKinneticResist, "󰟆");
+impl_drawable_for_enemy!(EnemyWithMagicResist, "󰐁");
