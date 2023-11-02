@@ -11,6 +11,7 @@ use model::{
     spawner::SpawnerWithCooldown,
     trajectory::NoiseTrajectory,
 };
+use rand::Rng;
 use ui::core::{Camera, Screen};
 
 use noise::Perlin;
@@ -20,6 +21,7 @@ struct App<G: GameModel + HandleEvent> {
     screen: Screen,
     camera: Camera,
     keep_going: bool,
+    update_clock: Clock,
 }
 
 impl<G: GameModel + HandleEvent> App<G> {
@@ -28,6 +30,7 @@ impl<G: GameModel + HandleEvent> App<G> {
             game_model: model,
             screen: ui,
             camera: Camera::default(),
+            update_clock: Clock::from_now(),
             keep_going: true,
         }
     }
@@ -41,26 +44,25 @@ impl<G: GameModel + HandleEvent> App<G> {
     }
 
     fn run_impl(&mut self, tick_duration: Duration) -> io::Result<()> {
-        let mut clock = Clock::from_now();
         while self.keep_going {
-            while clock.elapsed() < tick_duration {
-                let timeout = tick_duration.saturating_sub(clock.elapsed());
+            while self.update_clock.elapsed() < tick_duration {
+                let timeout = tick_duration.saturating_sub(self.update_clock.elapsed());
                 let screen_info =
                     ScreenInfo::from_frame_size(self.camera.clone(), self.screen.size()?);
                 let event = poll_event(timeout, screen_info)?;
                 self.handle_event(event);
             }
-
-            let delta_time = clock.elapsed();
-            if delta_time >= tick_duration {
-                self.game_model.update(delta_time);
-
-                self.screen.draw_frame(&self.camera, &self.game_model)?;
-                clock.tick();
-            }
-
+            self.on_tick()?;
             self.keep_going &= !self.game_model.is_over();
         }
+        Ok(())
+    }
+
+    fn on_tick(&mut self) -> io::Result<()> {
+        let delta_time = self.update_clock.elapsed();
+        self.game_model.update(delta_time);
+        self.screen.draw_frame(&self.camera, &self.game_model)?;
+        self.update_clock.tick();
         Ok(())
     }
 
@@ -78,7 +80,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let target_fps = 60;
     let tick_duration = Duration::from_millis(1000) / target_fps;
 
-    let perlin = Perlin::new(10);
+    let perlin = Perlin::new(rand::thread_rng().gen());
     let spawner = SpawnerWithCooldown::new(Duration::from_secs_f32(1.0));
     let trajectory = NoiseTrajectory::new(&perlin);
     let model = ConcreteGameModel::new(spawner, trajectory, 1000);
