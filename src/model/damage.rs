@@ -8,7 +8,7 @@ pub enum DamageType {
 
 #[derive(Clone)]
 pub struct Damage {
-    pub value: u8,
+    pub value: f32,
     pub kind: DamageType,
 }
 

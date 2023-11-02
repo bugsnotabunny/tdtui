@@ -148,7 +148,7 @@ impl TowerStats for ArcherTower {
     const COST: u64 = 10;
     const RANGE: f32 = 50.0;
     const DAMAGE: Damage = Damage {
-        value: 10,
+        value: 10.0,
         kind: DamageType::Kinnetic,
     };
 }
@@ -159,7 +159,7 @@ impl TowerStats for MageTower {
     const COST: u64 = 20;
     const RANGE: f32 = 100.0;
     const DAMAGE: Damage = Damage {
-        value: 5,
+        value: 5.0,
         kind: DamageType::Magic,
     };
 }

@@ -11,7 +11,7 @@ pub struct BasicSpawner {}
 
 impl Spawner for BasicSpawner {
     fn maybe_spawn(&mut self) -> Option<BasicEnemy> {
-        Some(BasicEnemy::new(4, 5.0, 0.0, 3))
+        Some(BasicEnemy::new(4.0, 5.0, 0.0, 3))
     }
 }
 
@@ -33,7 +33,7 @@ impl Spawner for SpawnerWithCooldown {
     fn maybe_spawn(&mut self) -> Option<BasicEnemy> {
         if self.last_spawn.elapsed() >= self.cooldown {
             self.last_spawn.tick();
-            return Some(BasicEnemy::new(4, 5.0, 0.0, 3));
+            return Some(BasicEnemy::new(4.0, 5.0, 0.0, 3));
         }
         return None;
     }
