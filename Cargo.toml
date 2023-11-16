@@ -10,3 +10,4 @@ crossterm = { version = "0.27.0" }
 noise = "0.8.2"
 rand = "0.8.5"
 ratatui = { version = "0.24.0", features = ["crossterm"] }
+macros = { path = "macros" }
