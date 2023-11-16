@@ -1,9 +1,10 @@
 use std::{cell::RefCell, time::Duration};
 
 use crate::model::{
+    assets::tower::{ArcherTower, MageTower},
     damage::Damage,
     point::Point,
-    tower::{ArcherTower, MageTower, Tower, TowerStats},
+    tower::{Tower, TowerStats},
 };
 
 pub struct TowerTypeInfo {

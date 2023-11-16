@@ -2,20 +2,11 @@ use crate::ui::core::Drawable;
 use std::{cell::RefCell, rc::Rc, time::Duration};
 
 use super::{
-    clock::Clock,
-    core::{GameModel, UpdatableObject},
-    damage::{Damage, DamageType},
-    enemy::Enemy,
-    point::Point,
-    trajectory::Trajectory,
+    core::UpdatableObject, damage::Damage, enemy::Enemy, point::Point, trajectory::Trajectory,
 };
 
-use macros::*;
-
-use rand::seq::IteratorRandom;
-
 #[derive(Default)]
-struct Aim {
+pub struct Aim {
     aim: Option<Rc<RefCell<dyn Enemy>>>,
 }
 
@@ -67,38 +58,4 @@ pub trait TowerStats {
     const COST: u64;
     const RANGE: f32;
     const DAMAGE: Damage;
-}
-
-#[derive(Tower)]
-pub struct ArcherTower {
-    aim: Aim,
-    position: Point,
-    cooldown_clock: Clock,
-}
-
-impl TowerStats for ArcherTower {
-    const COOLDOWN: Duration = Duration::from_millis(1500);
-    const COST: u64 = 10;
-    const RANGE: f32 = 50.0;
-    const DAMAGE: Damage = Damage {
-        value: 10.0,
-        kind: DamageType::Kinnetic,
-    };
-}
-
-#[derive(Tower)]
-pub struct MageTower {
-    aim: Aim,
-    position: Point,
-    cooldown_clock: Clock,
-}
-
-impl TowerStats for MageTower {
-    const COOLDOWN: Duration = Duration::from_millis(2000);
-    const COST: u64 = 20;
-    const RANGE: f32 = 100.0;
-    const DAMAGE: Damage = Damage {
-        value: 5.0,
-        kind: DamageType::Magic,
-    };
 }
