@@ -10,6 +10,9 @@ use super::{
     wallet::{NotEnoughMoneyErr, Wallet},
 };
 
+pub type EnemyShared = Rc<RefCell<Enemy>>;
+pub type EnemyUnique = Box<Enemy>;
+
 pub trait GameModel {
     fn update(&mut self, delta_time: Duration);
 
@@ -18,7 +21,7 @@ pub trait GameModel {
     fn wallet(&self) -> &Wallet;
     fn selector(&self) -> &TowerSelector;
     fn trajectory(&self) -> &dyn Trajectory;
-    fn enemies(&self) -> &Vec<Rc<RefCell<dyn Enemy>>>;
+    fn enemies(&self) -> &Vec<EnemyShared>;
 
     fn selector_mut(&mut self) -> &mut TowerSelector;
     fn wallet_mut(&mut self) -> &mut Wallet;
@@ -33,7 +36,7 @@ pub struct ConcreteGameModel<S: Spawner, T: Trajectory> {
     spawner: S,
     tower_selector: TowerSelector,
     towers: Vec<Tower>,
-    enemies: Vec<Rc<RefCell<dyn Enemy>>>,
+    enemies: Vec<EnemyShared>,
     player_wallet: Wallet,
 }
 
@@ -105,7 +108,7 @@ impl<S: Spawner, T: Trajectory> GameModel for ConcreteGameModel<S, T> {
         &self.trajectory
     }
 
-    fn enemies(&self) -> &Vec<Rc<RefCell<dyn Enemy>>> {
+    fn enemies(&self) -> &Vec<EnemyShared> {
         &self.enemies
     }
 
@@ -122,13 +125,13 @@ impl<S: Spawner, T: Trajectory> ConcreteGameModel<S, T> {
     fn is_overrun(&self) -> bool {
         self.enemies
             .iter()
-            .any(|enemy| enemy.borrow().position() > Self::ROAD_LEN)
+            .any(|enemy| enemy.borrow().t_position() > Self::ROAD_LEN)
     }
 
     fn maybe_spawn_new_enemy(&mut self) -> bool {
         match self.spawner.maybe_spawn() {
             Some(enemy) => {
-                self.enemies.push(enemy.into());
+                self.enemies.push(Rc::new(RefCell::new(*enemy)));
                 true
             }
             None => false,

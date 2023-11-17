@@ -1,22 +1,23 @@
-use std::{cell::RefCell, time::Duration};
+use std::time::Duration;
 
 use rand::{seq::SliceRandom, thread_rng};
 
 use super::{
     clock::Clock,
-    enemy::{BasicEnemy, Enemy, EnemyWithKinneticResist, EnemyWithMagicResist},
+    core::EnemyUnique,
+    enemy::{Enemy, BASIC_ENEMY_INFO, KINNETIC_RESIST_ENEMY_INFO, MAGIC_RESIST_ENEMY_INFO},
 };
 
 pub trait Spawner {
-    fn maybe_spawn(&mut self) -> Option<Box<RefCell<dyn Enemy>>>;
+    fn maybe_spawn(&mut self) -> Option<EnemyUnique>;
 }
 
 #[derive(Default)]
 pub struct BasicSpawner {}
 
 impl Spawner for BasicSpawner {
-    fn maybe_spawn(&mut self) -> Option<Box<RefCell<dyn Enemy>>> {
-        Some(Box::new(RefCell::new(BasicEnemy::new(4.0, 5.0, 0.0, 3))))
+    fn maybe_spawn(&mut self) -> Option<EnemyUnique> {
+        Some(Box::new(Enemy::new(&BASIC_ENEMY_INFO)))
     }
 }
 
@@ -33,26 +34,18 @@ impl SpawnerWithCooldown {
         }
     }
 
-    fn produce_enemy() -> Box<RefCell<dyn Enemy>> {
-        let factories: [fn() -> Box<RefCell<dyn Enemy>>; 3] = [
-            || Box::new(RefCell::new(BasicEnemy::new(4.0, 5.0, 0.0, 3))),
-            || {
-                Box::new(RefCell::new(EnemyWithKinneticResist::new(
-                    4.0, 0.8, 5.0, 0.0, 3,
-                )))
-            },
-            || {
-                Box::new(RefCell::new(EnemyWithMagicResist::new(
-                    4.0, 0.6, 5.0, 0.0, 3,
-                )))
-            },
+    fn produce_enemy() -> Box<Enemy> {
+        let factories: [fn() -> Box<Enemy>; 3] = [
+            || Box::new(Enemy::new(&BASIC_ENEMY_INFO)),
+            || Box::new(Enemy::new(&KINNETIC_RESIST_ENEMY_INFO)),
+            || Box::new(Enemy::new(&MAGIC_RESIST_ENEMY_INFO)),
         ];
         (factories.choose(&mut thread_rng()).unwrap())()
     }
 }
 
 impl Spawner for SpawnerWithCooldown {
-    fn maybe_spawn(&mut self) -> Option<Box<RefCell<dyn Enemy>>> {
+    fn maybe_spawn(&mut self) -> Option<Box<Enemy>> {
         if self.last_spawn.elapsed() >= self.cooldown {
             self.last_spawn.tick();
             return Some(Self::produce_enemy());

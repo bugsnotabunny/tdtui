@@ -1,10 +1,9 @@
-use std::{cell::RefCell, rc::Rc, time::Duration};
+use std::time::Duration;
 
 use super::{
     clock::Clock,
-    core::{GameModel, UpdatableObject},
+    core::{EnemyShared, GameModel, UpdatableObject},
     damage::{Damage, DamageType},
-    enemy::Enemy,
     point::Point,
     trajectory::Trajectory,
 };
@@ -13,19 +12,19 @@ use rand::seq::IteratorRandom;
 
 #[derive(Default)]
 struct Aim {
-    aim: Option<Rc<RefCell<dyn Enemy>>>,
+    aim: Option<EnemyShared>,
 }
 
 impl Aim {
-    pub fn new(aim: Option<Rc<RefCell<dyn Enemy>>>) -> Self {
+    pub fn new(aim: Option<EnemyShared>) -> Self {
         Self { aim: aim.clone() }
     }
 
     pub fn is_in_shoot_range(&self, tower: &Tower, trajectory: &dyn Trajectory) -> bool {
         match self.aim.as_ref() {
             Some(aimcell) => {
-                let aim = aimcell.borrow();
-                let enemypos = trajectory.get_point(aim.position());
+                let aim = aimcell;
+                let enemypos = trajectory.get_point(aim.borrow().t_position());
                 enemypos.distance(&tower.position()) < tower.range()
             }
             None => false,
@@ -117,7 +116,9 @@ impl Tower {
             .enemies()
             .iter()
             .filter(|enemy| {
-                let enemypos = game_model.trajectory().get_point(enemy.borrow().position());
+                let enemypos = game_model
+                    .trajectory()
+                    .get_point(enemy.borrow().t_position());
                 enemypos.distance(self.position()) < self.range()
             })
             .map(|rc| rc.clone())
