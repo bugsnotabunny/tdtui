@@ -14,7 +14,7 @@ pub trait GameModel {
     fn update(&mut self, delta_time: Duration);
 
     fn is_over(&self) -> bool;
-    fn towers(&self) -> &Vec<Box<RefCell<dyn Tower>>>;
+    fn towers(&self) -> &Vec<Tower>;
     fn wallet(&self) -> &Wallet;
     fn selector(&self) -> &TowerSelector;
     fn trajectory(&self) -> &dyn Trajectory;
@@ -32,7 +32,7 @@ pub struct ConcreteGameModel<S: Spawner, T: Trajectory> {
     trajectory: T,
     spawner: S,
     tower_selector: TowerSelector,
-    towers: Vec<Box<RefCell<dyn Tower>>>,
+    towers: Vec<Tower>,
     enemies: Vec<Rc<RefCell<dyn Enemy>>>,
     player_wallet: Wallet,
 }
@@ -56,7 +56,7 @@ impl<S: Spawner, T: Trajectory> ConcreteGameModel<S, T> {
 
     pub fn maybe_build_from_selector(&mut self, position: Point) -> Result<(), NotEnoughMoneyErr> {
         let tower = self.selector().produce_current(position);
-        let cost = tower.borrow().cost();
+        let cost = tower.cost();
         self.player_wallet.pay_to_do(cost, || {
             self.towers.push(tower);
         })
@@ -75,9 +75,9 @@ impl<S: Spawner, T: Trajectory> GameModel for ConcreteGameModel<S, T> {
         }
         self.enemies = enemies;
 
-        let towers = std::mem::take(&mut self.towers);
-        for tower in towers.iter() {
-            tower.borrow_mut().on_update(self, delta_time);
+        let mut towers = std::mem::take(&mut self.towers);
+        for tower in towers.iter_mut() {
+            tower.on_update(self, delta_time);
         }
         self.towers = towers;
 
@@ -97,7 +97,7 @@ impl<S: Spawner, T: Trajectory> GameModel for ConcreteGameModel<S, T> {
         self.is_overrun()
     }
 
-    fn towers(&self) -> &Vec<Box<RefCell<dyn Tower>>> {
+    fn towers(&self) -> &Vec<Tower> {
         &self.towers
     }
 

@@ -1,60 +1,21 @@
-use std::{cell::RefCell, time::Duration};
-
-use crate::model::{
-    damage::Damage,
+use super::{
     point::Point,
-    tower::{ArcherTower, MageTower, Tower, TowerStats},
+    tower::{Tower, TowerInfo, ARCHER_TOWER_INFO, MAGE_TOWER_INFO},
 };
 
-pub struct TowerTypeInfo {
-    pub factory: fn(Point) -> Box<RefCell<dyn Tower>>,
-    pub cooldown: Duration,
-    pub damage: Damage,
-    pub cost: u64,
-    pub range: f32,
-    pub name: &'static str,
-    pub description: &'static str,
-}
+const TOWER_SELECTOR_OPTS: &[TowerInfo] = &[ARCHER_TOWER_INFO, MAGE_TOWER_INFO];
 
-macro_rules! declare_tower_info {
-    ($name:ident, $tower_type:ident, $factory_name:ident,$name_ingame:literal, $description:literal) => {
-        fn $factory_name(position: Point) -> Box<RefCell<dyn Tower>> {
-            Box::new(RefCell::new($tower_type::new(position)))
-        }
-
-        const $name: TowerTypeInfo = TowerTypeInfo {
-            name: $name_ingame,
-            factory: $factory_name,
-            cooldown: $tower_type::COOLDOWN,
-            damage: $tower_type::DAMAGE,
-            cost: $tower_type::COST,
-            range: $tower_type::RANGE,
-            description: $description,
-        };
-    };
-}
-
-declare_tower_info!(
-    ARCHER_INFO,
-    ArcherTower,
-    prod_archer,
-    "Archer tower",
-    "desc"
-);
-declare_tower_info!(MAGE_INFO, MageTower, prod_mage, "Mage tower", "desc");
-
-const TOWER_SELECTOR_OPTS: [TowerTypeInfo; 2] = [ARCHER_INFO, MAGE_INFO];
 #[derive(Debug, Default)]
 pub struct TowerSelector {
     idx: usize,
 }
 
 impl TowerSelector {
-    pub fn produce_current(&self, position: Point) -> Box<RefCell<dyn Tower>> {
-        (TOWER_SELECTOR_OPTS[self.idx].factory)(position)
+    pub fn produce_current(&self, position: Point) -> Tower {
+        Tower::new(position, &TOWER_SELECTOR_OPTS[self.idx])
     }
 
-    pub fn current(&self) -> &'static TowerTypeInfo {
+    pub fn current(&self) -> &'static TowerInfo {
         &TOWER_SELECTOR_OPTS[self.idx]
     }
 

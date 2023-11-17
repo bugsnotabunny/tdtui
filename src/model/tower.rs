@@ -1,7 +1,5 @@
 use std::{cell::RefCell, rc::Rc, time::Duration};
 
-use crate::ui::core::Drawable;
-
 use super::{
     clock::Clock,
     core::{GameModel, UpdatableObject},
@@ -23,7 +21,7 @@ impl Aim {
         Self { aim: aim.clone() }
     }
 
-    pub fn is_in_shoot_range(&self, tower: &impl Tower, trajectory: &dyn Trajectory) -> bool {
+    pub fn is_in_shoot_range(&self, tower: &Tower, trajectory: &dyn Trajectory) -> bool {
         match self.aim.as_ref() {
             Some(aimcell) => {
                 let aim = aimcell.borrow();
@@ -55,111 +53,112 @@ impl Aim {
     }
 }
 
-macro_rules! create_tower_type {
-    ($a:ident ) => {
-        pub struct $a {
-            aim: Aim,
-            position: Point,
-            cooldown_clock: Clock,
-        }
-
-        impl $a {
-            pub fn new(position: Point) -> Self {
-                Self {
-                    aim: Aim::new(None),
-                    position: position,
-                    cooldown_clock: Clock::from_now(),
-                }
-            }
-
-            fn shoot(&mut self, game_model: &mut dyn GameModel) {
-                self.aim.try_shoot(Self::DAMAGE, |reward| {
-                    game_model.wallet_mut().add_money(reward);
-                });
-            }
-
-            fn update_aim(&mut self, game_model: &dyn GameModel) {
-                if !self.aim.is_in_shoot_range(self, game_model.trajectory())
-                    || !self.aim.is_alive()
-                {
-                    self.aim = Aim::new(None);
-                }
-
-                if self.aim.is_some() {
-                    return;
-                }
-
-                let random_chosen_enemy = game_model
-                    .enemies()
-                    .iter()
-                    .filter(|enemy| {
-                        let enemypos = game_model.trajectory().get_point(enemy.borrow().position());
-                        enemypos.distance(self.position()) < self.range()
-                    })
-                    .map(|rc| rc.clone())
-                    .choose(&mut rand::thread_rng());
-
-                self.aim = Aim::new(random_chosen_enemy);
-            }
-        }
-
-        impl Tower for $a {
-            fn position(&self) -> &Point {
-                &self.position
-            }
-
-            fn cost(&self) -> u64 {
-                Self::COST
-            }
-
-            fn range(&self) -> f32 {
-                Self::RANGE
-            }
-        }
-
-        impl UpdatableObject for $a {
-            fn on_update(&mut self, game_model: &mut dyn GameModel, _: Duration) {
-                self.update_aim(game_model);
-                if self.cooldown_clock.elapsed() > Self::COOLDOWN {
-                    self.shoot(game_model);
-                    self.cooldown_clock.tick();
-                }
-            }
-        }
-    };
+pub struct Tower {
+    aim: Aim,
+    position: Point,
+    cooldown_clock: Clock,
+    type_info: &'static TowerInfo,
 }
 
-pub trait Tower: UpdatableObject + Drawable {
-    fn position(&self) -> &Point;
-    fn range(&self) -> f32;
-    fn cost(&self) -> u64;
+impl Tower {
+    pub fn new(position: Point, type_info: &'static TowerInfo) -> Self {
+        Self {
+            aim: Aim::new(None),
+            position: position,
+            cooldown_clock: Clock::from_now(),
+            type_info: type_info,
+        }
+    }
+
+    pub fn position(&self) -> &Point {
+        &self.position
+    }
+
+    pub fn cost(&self) -> u64 {
+        self.type_info.cost
+    }
+
+    pub fn range(&self) -> f32 {
+        self.type_info.range
+    }
+
+    pub fn type_info(&self) -> &'static TowerInfo {
+        &self.type_info
+    }
 }
 
-pub trait TowerStats {
-    const COOLDOWN: Duration;
-    const COST: u64;
-    const RANGE: f32;
-    const DAMAGE: Damage;
+impl UpdatableObject for Tower {
+    fn on_update(&mut self, game_model: &mut dyn GameModel, _: Duration) {
+        self.update_aim(game_model);
+        if self.cooldown_clock.elapsed() > self.type_info.cooldown {
+            self.shoot(game_model);
+            self.cooldown_clock.tick();
+        }
+    }
 }
 
-create_tower_type!(ArcherTower);
-impl TowerStats for ArcherTower {
-    const COOLDOWN: Duration = Duration::from_millis(1500);
-    const COST: u64 = 10;
-    const RANGE: f32 = 50.0;
-    const DAMAGE: Damage = Damage {
+impl Tower {
+    fn shoot(&mut self, game_model: &mut dyn GameModel) {
+        self.aim.try_shoot(self.type_info.damage.clone(), |reward| {
+            game_model.wallet_mut().add_money(reward);
+        });
+    }
+
+    fn update_aim(&mut self, game_model: &dyn GameModel) {
+        if !self.aim.is_in_shoot_range(self, game_model.trajectory()) || !self.aim.is_alive() {
+            self.aim = Aim::new(None);
+        }
+
+        if self.aim.is_some() {
+            return;
+        }
+
+        let random_chosen_enemy = game_model
+            .enemies()
+            .iter()
+            .filter(|enemy| {
+                let enemypos = game_model.trajectory().get_point(enemy.borrow().position());
+                enemypos.distance(self.position()) < self.range()
+            })
+            .map(|rc| rc.clone())
+            .choose(&mut rand::thread_rng());
+
+        self.aim = Aim::new(random_chosen_enemy);
+    }
+}
+
+pub struct TowerInfo {
+    pub cooldown: Duration,
+    pub cost: u64,
+    pub range: f32,
+    pub damage: Damage,
+    pub close_up_sprite: &'static str,
+    pub name: &'static str,
+    pub description: &'static str,
+}
+
+pub const ARCHER_TOWER_INFO: TowerInfo = TowerInfo {
+    cooldown: Duration::from_millis(1500),
+    cost: 10,
+    range: 50.0,
+    damage: Damage {
         value: 10.0,
         kind: DamageType::Kinnetic,
-    };
-}
+    },
+    name: "Archer tower",
+    description: "",
+    close_up_sprite: "",
+};
 
-create_tower_type!(MageTower);
-impl TowerStats for MageTower {
-    const COOLDOWN: Duration = Duration::from_millis(2000);
-    const COST: u64 = 20;
-    const RANGE: f32 = 100.0;
-    const DAMAGE: Damage = Damage {
+pub const MAGE_TOWER_INFO: TowerInfo = TowerInfo {
+    cooldown: Duration::from_millis(2000),
+    cost: 10,
+    range: 100.0,
+    damage: Damage {
         value: 5.0,
         kind: DamageType::Magic,
-    };
-}
+    },
+    name: "Mage tower",
+    description: "",
+    close_up_sprite: "",
+};

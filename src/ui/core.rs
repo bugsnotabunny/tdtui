@@ -12,7 +12,7 @@ use ratatui::{
 
 use crate::model::{core::GameModel, point::Point};
 
-use super::road::RoadDrawable;
+use super::{road::RoadDrawable, tower::TowerDrawable};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Camera {
@@ -130,7 +130,8 @@ impl Screen {
         }
 
         for tower in game_model.towers() {
-            tower.borrow().draw(frame, camera, game_model);
+            let drawable = TowerDrawable::new(tower);
+            drawable.draw(frame, camera, game_model);
         }
 
         game_model.selector().draw(frame, camera, game_model);

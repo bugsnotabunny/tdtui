@@ -9,7 +9,6 @@ use crate::{
 #[derive(Debug, PartialEq, Eq)]
 enum AppState {
     NotStarted,
-    SettingUp,
     Paused,
     Running,
     Closing,
