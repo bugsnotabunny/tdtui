@@ -4,7 +4,10 @@ use ratatui::{
     widgets::canvas::{Canvas, Context, Points},
 };
 
-use crate::model::{assets::enemy::*, core::GameModel, enemy::EnemyCommon};
+use crate::model::{
+    core::GameModel,
+    enemy::{BasicEnemy, Enemy, EnemyWithKinneticResist, EnemyWithMagicResist},
+};
 
 use super::core::{Camera, Drawable};
 

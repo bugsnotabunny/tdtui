@@ -2,7 +2,10 @@ use std::{cell::RefCell, time::Duration};
 
 use rand::{seq::SliceRandom, thread_rng};
 
-use super::{assets::enemy::*, clock::Clock, enemy::*};
+use super::{
+    clock::Clock,
+    enemy::{BasicEnemy, Enemy, EnemyWithKinneticResist, EnemyWithMagicResist},
+};
 
 pub trait Spawner {
     fn maybe_spawn(&mut self) -> Option<Box<RefCell<dyn Enemy>>>;

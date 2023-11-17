@@ -5,9 +5,8 @@ use ratatui::{
 };
 
 use crate::model::{
-    assets::tower::{ArcherTower, MageTower},
     core::GameModel,
-    tower::Tower,
+    tower::{ArcherTower, MageTower, Tower},
 };
 
 use super::core::{Camera, Drawable};
