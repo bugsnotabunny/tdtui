@@ -85,6 +85,10 @@ impl<S: Spawner, T: Trajectory> GameModel for ConcreteGameModel<S, T> {
         self.towers = towers;
 
         self.enemies.retain(|enemy| !enemy.borrow().is_dead());
+
+        let mut spawner = std::mem::take(&mut self.spawner);
+        spawner.on_update(self, delta_time);
+        self.spawner = spawner;
         self.maybe_spawn_new_enemy();
     }
 
@@ -129,9 +133,9 @@ impl<S: Spawner, T: Trajectory> ConcreteGameModel<S, T> {
     }
 
     fn maybe_spawn_new_enemy(&mut self) -> bool {
-        match self.spawner.maybe_spawn() {
+        match self.spawner.take_spawned() {
             Some(enemy) => {
-                self.enemies.push(Rc::new(RefCell::new(*enemy)));
+                self.enemies.push(Rc::new(RefCell::new(enemy)));
                 true
             }
             None => false,

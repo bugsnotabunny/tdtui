@@ -4,50 +4,61 @@ use rand::{seq::SliceRandom, thread_rng};
 
 use crate::assets::enemy::*;
 
-use super::{clock::Clock, core::EnemyUnique, enemy::Enemy};
+use super::{
+    core::{GameModel, UpdatableObject},
+    enemy::Enemy,
+};
 
-pub trait Spawner {
-    fn maybe_spawn(&mut self) -> Option<EnemyUnique>;
+pub trait Spawner: UpdatableObject + Default {
+    fn spawn(&mut self);
+    fn take_spawned(&mut self) -> Option<Enemy>;
 }
 
 #[derive(Default)]
-pub struct BasicSpawner {}
-
-impl Spawner for BasicSpawner {
-    fn maybe_spawn(&mut self) -> Option<EnemyUnique> {
-        Some(Box::new(Enemy::new(&BASIC_ENEMY_INFO)))
-    }
-}
-
-pub struct SpawnerWithCooldown {
-    last_spawn: Clock,
+pub struct RandomizedSpawnerWithCooldown {
+    cooldown_elapsed: Duration,
     cooldown: Duration,
+    buf: Option<Enemy>,
 }
 
-impl SpawnerWithCooldown {
+impl RandomizedSpawnerWithCooldown {
     pub fn new(cooldown: Duration) -> Self {
         Self {
-            last_spawn: Clock::from_now(),
+            cooldown_elapsed: Duration::from_millis(0),
             cooldown: cooldown,
+            buf: None,
         }
-    }
-
-    fn produce_enemy() -> Box<Enemy> {
-        let factories: [fn() -> Box<Enemy>; 3] = [
-            || Box::new(Enemy::new(&BASIC_ENEMY_INFO)),
-            || Box::new(Enemy::new(&KINNETIC_RESIST_ENEMY_INFO)),
-            || Box::new(Enemy::new(&MAGIC_RESIST_ENEMY_INFO)),
-        ];
-        (factories.choose(&mut thread_rng()).unwrap())()
     }
 }
 
-impl Spawner for SpawnerWithCooldown {
-    fn maybe_spawn(&mut self) -> Option<Box<Enemy>> {
-        if self.last_spawn.elapsed() >= self.cooldown {
-            self.last_spawn.tick();
-            return Some(Self::produce_enemy());
+impl UpdatableObject for RandomizedSpawnerWithCooldown {
+    fn on_update(&mut self, _: &mut dyn GameModel, delta_time: Duration) {
+        self.cooldown_elapsed += delta_time;
+
+        if self.cooldown_elapsed >= self.cooldown {
+            self.cooldown_elapsed = Duration::from_millis(0);
+            self.spawn();
         }
-        return None;
+    }
+}
+
+impl Spawner for RandomizedSpawnerWithCooldown {
+    fn spawn(&mut self) {
+        self.buf = Some(Self::produce_enemy());
+    }
+
+    fn take_spawned(&mut self) -> Option<Enemy> {
+        return std::mem::take(&mut self.buf);
+    }
+}
+
+impl RandomizedSpawnerWithCooldown {
+    fn produce_enemy() -> Enemy {
+        const FACTORIES: &[fn() -> Enemy] = &[
+            || Enemy::new(&BASIC_ENEMY_INFO),
+            || Enemy::new(&KINNETIC_RESIST_ENEMY_INFO),
+            || Enemy::new(&MAGIC_RESIST_ENEMY_INFO),
+        ];
+        (FACTORIES.choose(&mut thread_rng()).unwrap())()
     }
 }

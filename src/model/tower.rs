@@ -1,7 +1,6 @@
 use std::time::Duration;
 
 use super::{
-    clock::Clock,
     core::{EnemyShared, GameModel, UpdatableObject},
     damage::Damage,
     point::Point,
@@ -55,7 +54,7 @@ impl Aim {
 pub struct Tower {
     aim: Aim,
     position: Point,
-    cooldown_clock: Clock,
+    cooldown_elapsed: Duration,
     type_info: &'static TowerInfo,
 }
 
@@ -64,7 +63,7 @@ impl Tower {
         Self {
             aim: Aim::new(None),
             position: position,
-            cooldown_clock: Clock::from_now(),
+            cooldown_elapsed: Duration::from_millis(0),
             type_info: type_info,
         }
     }
@@ -87,11 +86,12 @@ impl Tower {
 }
 
 impl UpdatableObject for Tower {
-    fn on_update(&mut self, game_model: &mut dyn GameModel, _: Duration) {
+    fn on_update(&mut self, game_model: &mut dyn GameModel, delta_time: Duration) {
         self.update_aim(game_model);
-        if self.cooldown_clock.elapsed() > self.type_info.cooldown {
+        self.cooldown_elapsed += delta_time;
+        if self.cooldown_elapsed >= self.type_info.cooldown {
             self.shoot(game_model);
-            self.cooldown_clock.tick();
+            self.cooldown_elapsed = Duration::from_millis(0);
         }
     }
 }
