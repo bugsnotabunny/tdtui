@@ -1,9 +1,0 @@
-{
-    "rust-analyzer.linkedProjects": [
-        "./macros/Cargo.toml"
-    ],
-    "files.exclude": {
-        "**/.git": true,
-        "**/target": true,
-    }
-}
