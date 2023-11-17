@@ -1,4 +1,5 @@
 pub mod app;
+pub mod assets;
 pub mod input;
 pub mod model;
 pub mod ui;

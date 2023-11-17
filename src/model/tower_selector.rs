@@ -1,6 +1,8 @@
+use crate::assets::tower::*;
+
 use super::{
     point::Point,
-    tower::{Tower, TowerInfo, ARCHER_TOWER_INFO, MAGE_TOWER_INFO},
+    tower::{Tower, TowerInfo},
 };
 
 #[derive(Debug, Default)]

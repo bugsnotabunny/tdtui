@@ -2,11 +2,9 @@ use std::time::Duration;
 
 use rand::{seq::SliceRandom, thread_rng};
 
-use super::{
-    clock::Clock,
-    core::EnemyUnique,
-    enemy::{Enemy, BASIC_ENEMY_INFO, KINNETIC_RESIST_ENEMY_INFO, MAGIC_RESIST_ENEMY_INFO},
-};
+use crate::assets::enemy::*;
+
+use super::{clock::Clock, core::EnemyUnique, enemy::Enemy};
 
 pub trait Spawner {
     fn maybe_spawn(&mut self) -> Option<EnemyUnique>;
