@@ -23,8 +23,6 @@ impl TowerSelector {
 
     pub fn to_next(&mut self) {
         self.idx += 1;
-        if self.idx >= Self::OPTS.len() {
-            self.idx = 0;
-        }
+        self.idx %= Self::OPTS.len();
     }
 }
