@@ -9,7 +9,7 @@ use crate::{
 };
 
 pub const COMMON_ENEMY_MARKER: Marker = Marker::HalfBlock;
-pub const COMMON_ENEMY_MODIFIERS: Modifier = Modifier::empty();
+pub const COMMON_ENEMY_MODIFIERS: Modifier = Modifier::BOLD;
 pub const COMMON_ENEMY_FG_COLOR: Color = Color::Red;
 pub const COMMON_ENEMY_BG_COLOR: Color = Color::Reset;
 
