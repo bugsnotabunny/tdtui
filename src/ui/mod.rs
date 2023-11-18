@@ -1,5 +1,5 @@
 pub mod core;
-pub mod enemy;
+pub mod pos_drawable;
 pub mod road;
 pub mod tower;
 pub mod tower_selector;

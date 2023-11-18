@@ -1,9 +1,11 @@
 use std::time::Duration;
 
+use crate::ui::pos_drawable::PosDrawInfo;
+
 use super::{
     core::{EnemyShared, GameModel, UpdatableObject},
     damage::Damage,
-    point::Point,
+    point::{Point, Positioned},
     trajectory::Trajectory,
 };
 
@@ -59,10 +61,10 @@ pub struct TowerInfo {
     pub cooldown: Duration,
     pub cost: u64,
     pub range: f32,
-    pub close_up_sprite: &'static str,
     pub name: &'static str,
     pub description: &'static str,
     pub projectile_info: ProjectileInfo,
+    pub draw_info: PosDrawInfo,
 }
 
 pub struct Tower {
@@ -82,10 +84,6 @@ impl Tower {
         }
     }
 
-    pub fn position(&self) -> Point {
-        self.position.clone()
-    }
-
     pub fn cost(&self) -> u64 {
         self.type_info.cost
     }
@@ -96,6 +94,12 @@ impl Tower {
 
     pub fn type_info(&self) -> &'static TowerInfo {
         &self.type_info
+    }
+}
+
+impl Positioned for Tower {
+    fn position(&self) -> Point {
+        self.position.clone()
     }
 }
 
@@ -170,12 +174,14 @@ impl Projectile {
         }
     }
 
-    pub fn position(&self) -> Point {
-        self.position.clone()
-    }
-
     pub fn type_info(&self) -> &'static ProjectileInfo {
         self.type_info
+    }
+}
+
+impl Positioned for Projectile {
+    fn position(&self) -> Point {
+        self.position.clone()
     }
 }
 

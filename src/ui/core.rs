@@ -13,9 +13,8 @@ use ratatui::{
 use crate::model::{core::GameModel, point::Point};
 
 use super::{
-    enemy::EnemyDrawable,
+    pos_drawable::{EnemyPositioned, PosDrawable},
     road::RoadDrawable,
-    tower::{ProjectileDrawable, TowerDrawable},
 };
 
 #[derive(Debug, Clone, PartialEq)]
@@ -131,17 +130,18 @@ impl Screen {
 
         for enemy in game_model.enemies() {
             let borrowed = &enemy.borrow();
-            let drawable = EnemyDrawable::new(borrowed);
+            let positioned = EnemyPositioned::new(borrowed, game_model.trajectory());
+            let drawable = PosDrawable::new(&positioned);
             drawable.draw(frame, camera, game_model);
         }
 
         for tower in game_model.towers() {
-            let drawable = TowerDrawable::new(tower);
+            let drawable = PosDrawable::new(tower);
             drawable.draw(frame, camera, game_model);
         }
 
         for projectile in game_model.projectiles() {
-            let drawable = ProjectileDrawable::new(projectile);
+            let drawable = PosDrawable::new(projectile);
             drawable.draw(frame, camera, game_model);
         }
 

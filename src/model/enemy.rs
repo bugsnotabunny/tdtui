@@ -1,5 +1,7 @@
 use std::time::Duration;
 
+use crate::ui::pos_drawable::PosDrawInfo;
+
 use super::{
     core::{GameModel, UpdatableObject},
     damage::Damage,
@@ -11,7 +13,7 @@ pub struct EnemyInfo {
     pub speed: f32,
     pub reward: u64,
     pub damage_eval: fn(Damage) -> f32,
-    pub close_up_sprite: &'static str,
+    pub draw_info: PosDrawInfo,
 }
 
 pub struct Enemy {

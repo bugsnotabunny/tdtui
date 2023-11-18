@@ -6,6 +6,10 @@ pub struct Point {
     pub y: f32,
 }
 
+pub trait Positioned {
+    fn position(&self) -> Point;
+}
+
 impl Point {
     pub fn distance(&self, rhs: Point) -> f32 {
         ((self.x - rhs.x).powi(2) + (self.y - rhs.y).powi(2)).sqrt()
