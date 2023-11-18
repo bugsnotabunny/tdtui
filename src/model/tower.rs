@@ -19,12 +19,16 @@ impl Aim {
         Self { aim: aim.clone() }
     }
 
+    pub fn aim(&self) -> &Option<EnemyShared> {
+        &self.aim
+    }
+
     pub fn is_in_shoot_range(&self, tower: &Tower, trajectory: &dyn Trajectory) -> bool {
         match self.aim.as_ref() {
             Some(aimcell) => {
                 let aim = aimcell;
-                let enemypos = trajectory.get_point(aim.borrow().t_position());
-                enemypos.distance(&tower.position()) < tower.range()
+                let enemypos = trajectory.point_from_t(aim.borrow().t_position());
+                enemypos.distance(tower.position()) < tower.range()
             }
             None => false,
         }
@@ -34,7 +38,7 @@ impl Aim {
         self.aim.is_some() && !self.aim.as_ref().unwrap().borrow().is_dead()
     }
 
-    pub fn try_shoot(&mut self, damage: Damage, on_death: impl FnOnce(u64)) {
+    pub fn try_damage(&mut self, damage: Damage, on_death: impl FnOnce(u64)) {
         if !self.is_some() {
             return;
         }
@@ -49,6 +53,16 @@ impl Aim {
     pub fn is_some(&self) -> bool {
         self.aim.is_some()
     }
+}
+
+pub struct TowerInfo {
+    pub cooldown: Duration,
+    pub cost: u64,
+    pub range: f32,
+    pub close_up_sprite: &'static str,
+    pub name: &'static str,
+    pub description: &'static str,
+    pub projectile_info: ProjectileInfo,
 }
 
 pub struct Tower {
@@ -68,8 +82,8 @@ impl Tower {
         }
     }
 
-    pub fn position(&self) -> &Point {
-        &self.position
+    pub fn position(&self) -> Point {
+        self.position.clone()
     }
 
     pub fn cost(&self) -> u64 {
@@ -90,17 +104,25 @@ impl UpdatableObject for Tower {
         self.update_aim(game_model);
         self.cooldown_elapsed += delta_time;
         if self.cooldown_elapsed >= self.type_info.cooldown {
-            self.shoot(game_model);
+            self.maybe_shoot(game_model);
             self.cooldown_elapsed = Duration::from_millis(0);
         }
     }
 }
 
 impl Tower {
-    fn shoot(&mut self, game_model: &mut dyn GameModel) {
-        self.aim.try_shoot(self.type_info.damage.clone(), |reward| {
-            game_model.wallet_mut().add_money(reward);
-        });
+    fn maybe_shoot(&mut self, game_model: &mut dyn GameModel) {
+        if !self.aim.is_some() {
+            return;
+        }
+
+        let projectile = Projectile::new(
+            self.position.clone(),
+            self.aim.aim().as_ref().unwrap().clone(),
+            &self.type_info.projectile_info,
+        );
+
+        game_model.spawn_projectile(projectile);
     }
 
     fn update_aim(&mut self, game_model: &dyn GameModel) {
@@ -118,7 +140,7 @@ impl Tower {
             .filter(|enemy| {
                 let enemypos = game_model
                     .trajectory()
-                    .get_point(enemy.borrow().t_position());
+                    .point_from_t(enemy.borrow().t_position());
                 enemypos.distance(self.position()) < self.range()
             })
             .map(|rc| rc.clone())
@@ -128,12 +150,69 @@ impl Tower {
     }
 }
 
-pub struct TowerInfo {
-    pub cooldown: Duration,
-    pub cost: u64,
-    pub range: f32,
+pub struct ProjectileInfo {
+    pub speed: f32,
     pub damage: Damage,
-    pub close_up_sprite: &'static str,
-    pub name: &'static str,
-    pub description: &'static str,
+}
+
+pub struct Projectile {
+    position: Point,
+    aim: Aim,
+    type_info: &'static ProjectileInfo,
+}
+
+impl Projectile {
+    fn new(position: Point, aim: EnemyShared, type_info: &'static ProjectileInfo) -> Self {
+        Self {
+            position: position,
+            aim: Aim::new(Some(aim)),
+            type_info: type_info,
+        }
+    }
+
+    pub fn position(&self) -> Point {
+        self.position.clone()
+    }
+
+    pub fn type_info(&self) -> &'static ProjectileInfo {
+        self.type_info
+    }
+}
+
+impl UpdatableObject for Projectile {
+    fn on_update(&mut self, game_model: &mut dyn GameModel, delta_time: Duration) {
+        self.move_to_aim(game_model, delta_time);
+    }
+}
+
+impl Projectile {
+    pub fn is_active(&self) -> bool {
+        self.aim.is_some()
+    }
+
+    pub fn move_to_aim(&mut self, game_model: &mut dyn GameModel, delta_time: Duration) {
+        if !self.is_active() {
+            return;
+        }
+        let move_points = self.type_info.speed * delta_time.as_secs_f32();
+        let trajectory = game_model.trajectory();
+        let t = self.aim.aim().as_ref().unwrap().borrow().t_position();
+        let aim_pos = trajectory.point_from_t(t);
+        let direction = (aim_pos.clone() - self.position.clone()).normalize();
+        let distance = self.position.distance(aim_pos);
+
+        if distance < move_points {
+            self.on_collision(game_model);
+            return;
+        }
+        self.position = self.position.clone() + direction * move_points;
+    }
+
+    fn on_collision(&mut self, game_model: &mut dyn GameModel) {
+        self.aim
+            .try_damage(self.type_info.damage.clone(), |reward| {
+                game_model.wallet_mut().add_money(reward);
+            });
+        self.aim = Aim::new(None);
+    }
 }

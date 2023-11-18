@@ -18,7 +18,7 @@ impl RoadDrawable {
         let data = Vec::from_iter(
             (0..100)
                 .map(|x| x as f32 * 1.0)
-                .map(|t| trajectory.get_point(t))
+                .map(|t| trajectory.point_from_t(t))
                 .map(|point| (point.x as f64, point.y as f64)),
         );
 

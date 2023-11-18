@@ -7,12 +7,12 @@ pub struct Point {
 }
 
 impl Point {
-    pub fn distance(&self, rhs: &Point) -> f32 {
+    pub fn distance(&self, rhs: Point) -> f32 {
         ((self.x - rhs.x).powi(2) + (self.y - rhs.y).powi(2)).sqrt()
     }
 
     pub fn normalize(&self) -> Point {
-        let len = self.distance(&Point::default());
+        let len = self.distance(Point::default());
         Point {
             x: (self.x / len),
             y: (self.y / len),

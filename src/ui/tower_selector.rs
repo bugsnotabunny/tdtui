@@ -16,7 +16,7 @@ impl Drawable for TowerSelector {
         let text = vec![
             Line::from(format!("Type: {}", stats.name).dark_gray()),
             Line::from(format!("Cost: {}$", stats.cost).dark_gray()),
-            Line::from(format!("Damage: {}", stats.damage).dark_gray()),
+            Line::from(format!("Damage: {}", stats.projectile_info.damage).dark_gray()),
             Line::from(format!("Cooldown: {}ms", stats.cooldown.as_millis()).dark_gray()),
             Line::from(format!("Range: {}", stats.range).dark_gray()),
             Line::from(format!("Description: {}", stats.description).dark_gray()),

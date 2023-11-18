@@ -24,7 +24,7 @@ impl<'a> Drawable for EnemyDrawable<'a> {
         let frame_h = frame.size().height;
 
         let self_trajectory = game_model.trajectory();
-        let self_pos = self_trajectory.get_point(self.enemy.t_position());
+        let self_pos = self_trajectory.point_from_t(self.enemy.t_position());
 
         let paint_strat = |ctx: &mut Context| {
             if camera.allows_more_detail() {

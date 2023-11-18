@@ -4,7 +4,7 @@ use super::{
     enemy::Enemy,
     point::Point,
     spawner::Spawner,
-    tower::Tower,
+    tower::{Projectile, Tower},
     tower_selector::TowerSelector,
     trajectory::Trajectory,
     wallet::{NotEnoughMoneyErr, Wallet},
@@ -17,14 +17,19 @@ pub trait GameModel {
     fn update(&mut self, delta_time: Duration);
 
     fn is_over(&self) -> bool;
-    fn towers(&self) -> &Vec<Tower>;
-    fn wallet(&self) -> &Wallet;
-    fn selector(&self) -> &TowerSelector;
     fn trajectory(&self) -> &dyn Trajectory;
-    fn enemies(&self) -> &Vec<EnemyShared>;
 
-    fn selector_mut(&mut self) -> &mut TowerSelector;
+    fn enemies(&self) -> &Vec<EnemyShared>;
+    fn towers(&self) -> &Vec<Tower>;
+    fn projectiles(&self) -> &Vec<Projectile>;
+
+    fn spawn_projectile(&mut self, projectile: Projectile);
+
+    fn wallet(&self) -> &Wallet;
     fn wallet_mut(&mut self) -> &mut Wallet;
+
+    fn selector(&self) -> &TowerSelector;
+    fn selector_mut(&mut self) -> &mut TowerSelector;
 }
 
 pub trait UpdatableObject {
@@ -37,6 +42,7 @@ pub struct ConcreteGameModel<S: Spawner, T: Trajectory> {
     tower_selector: TowerSelector,
     towers: Vec<Tower>,
     enemies: Vec<EnemyShared>,
+    projectiles: Vec<Projectile>,
     player_wallet: Wallet,
 }
 
@@ -50,6 +56,7 @@ impl<S: Spawner, T: Trajectory> ConcreteGameModel<S, T> {
         Self {
             towers: Vec::new(),
             enemies: Vec::new(),
+            projectiles: Vec::new(),
             tower_selector: TowerSelector::default(),
             player_wallet: wallet,
             spawner: spawner,
@@ -84,6 +91,13 @@ impl<S: Spawner, T: Trajectory> GameModel for ConcreteGameModel<S, T> {
         }
         self.towers = towers;
 
+        let mut projectiles = std::mem::take(&mut self.projectiles);
+        for projectile in projectiles.iter_mut() {
+            projectile.on_update(self, delta_time);
+        }
+        self.projectiles = projectiles;
+
+        self.projectiles.retain(|projectile| projectile.is_active());
         self.enemies.retain(|enemy| !enemy.borrow().is_dead());
 
         let mut spawner = std::mem::take(&mut self.spawner);
@@ -116,12 +130,20 @@ impl<S: Spawner, T: Trajectory> GameModel for ConcreteGameModel<S, T> {
         &self.enemies
     }
 
+    fn projectiles(&self) -> &Vec<Projectile> {
+        &self.projectiles
+    }
+
     fn wallet_mut(&mut self) -> &mut Wallet {
         &mut self.player_wallet
     }
 
     fn selector_mut(&mut self) -> &mut TowerSelector {
         &mut self.tower_selector
+    }
+
+    fn spawn_projectile(&mut self, projectile: Projectile) {
+        self.projectiles.push(projectile);
     }
 }
 

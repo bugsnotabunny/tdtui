@@ -58,9 +58,9 @@ impl Enemy {
         let mut step = INITIAL_STEP;
         while move_points > EPSILON {
             let t_to_move_to = self.t_position + step;
-            let self_pos = trajectory.get_point(self.t_position);
-            let point_to_move_to = trajectory.get_point(t_to_move_to);
-            let distance = self_pos.distance(&point_to_move_to);
+            let self_pos = trajectory.point_from_t(self.t_position);
+            let point_to_move_to = trajectory.point_from_t(t_to_move_to);
+            let distance = self_pos.distance(point_to_move_to);
 
             if distance > move_points {
                 step /= 2.0;
