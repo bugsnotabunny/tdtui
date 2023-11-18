@@ -115,7 +115,6 @@ pub enum InputEvent {
     CameraDown,
     CameraScaleUp,
     CameraScaleDown,
-    CameraDrag(Point),
     MousePressedL(MouseInput),
     MousePressedR(MouseInput),
     TowerSelectorNext,
