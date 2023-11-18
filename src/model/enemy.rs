@@ -6,6 +6,14 @@ use super::{
     trajectory::Trajectory,
 };
 
+pub struct EnemyInfo {
+    pub max_health: f32,
+    pub speed: f32,
+    pub reward: u64,
+    pub damage_eval: fn(Damage) -> f32,
+    pub close_up_sprite: &'static str,
+}
+
 pub struct Enemy {
     health: f32,
     t_position: f32,
@@ -71,12 +79,4 @@ impl Enemy {
             self.t_position += step;
         }
     }
-}
-
-pub struct EnemyInfo {
-    pub max_health: f32,
-    pub speed: f32,
-    pub reward: u64,
-    pub damage_eval: fn(Damage) -> f32,
-    pub close_up_sprite: &'static str,
 }
