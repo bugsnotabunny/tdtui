@@ -4,7 +4,7 @@ use ratatui::{
     Frame,
 };
 
-use crate::model::tower::Tower;
+use crate::model::tower::{Projectile, Tower};
 
 use super::core::{Camera, Drawable};
 
@@ -45,6 +45,44 @@ impl<'a> Drawable for TowerDrawable<'a> {
                         color: Color::Green,
                     })
                 }
+            })
+            .x_bounds(camera.x_bounds(frame_w))
+            .y_bounds(camera.y_bounds(frame_h));
+
+        frame.render_widget(self_as_widget, camera.main_layout().split(frame.size())[0]);
+    }
+}
+
+pub struct ProjectileDrawable<'a> {
+    projectile: &'a Projectile,
+}
+
+impl<'a> ProjectileDrawable<'a> {
+    pub fn new(projectile: &'a Projectile) -> Self {
+        Self {
+            projectile: projectile,
+        }
+    }
+}
+
+impl<'a> Drawable for ProjectileDrawable<'a> {
+    fn draw(
+        &self,
+        frame: &mut Frame,
+        camera: &Camera,
+        _game_model: &dyn crate::model::core::GameModel,
+    ) {
+        let frame_w = frame.size().width;
+        let frame_h = frame.size().height;
+        let self_pos = self.projectile.position();
+
+        let self_as_widget = Canvas::default()
+            .marker(ratatui::symbols::Marker::Braille)
+            .paint(|ctx| {
+                ctx.draw(&Points {
+                    coords: &[(self_pos.x as f64, self_pos.y as f64)],
+                    color: Color::Blue,
+                })
             })
             .x_bounds(camera.x_bounds(frame_w))
             .y_bounds(camera.y_bounds(frame_h));
