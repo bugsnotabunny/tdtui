@@ -24,6 +24,8 @@ pub trait GameModel {
     fn projectiles(&self) -> &Vec<Projectile>;
 
     fn spawn_projectile(&mut self, projectile: Projectile);
+    fn spawn_tower(&mut self, tower: Tower);
+    fn spawn_enemy(&mut self, enemy: Enemy);
 
     fn wallet(&self) -> &Wallet;
     fn wallet_mut(&mut self) -> &mut Wallet;
@@ -103,7 +105,6 @@ impl<S: Spawner, T: Trajectory> GameModel for ConcreteGameModel<S, T> {
         let mut spawner = std::mem::take(&mut self.spawner);
         spawner.on_update(self, delta_time);
         self.spawner = spawner;
-        self.maybe_spawn_new_enemy();
     }
 
     fn selector(&self) -> &TowerSelector {
@@ -143,7 +144,15 @@ impl<S: Spawner, T: Trajectory> GameModel for ConcreteGameModel<S, T> {
     }
 
     fn spawn_projectile(&mut self, projectile: Projectile) {
-        self.projectiles.push(projectile);
+        self.projectiles.push(projectile)
+    }
+
+    fn spawn_tower(&mut self, tower: Tower) {
+        self.towers.push(tower)
+    }
+
+    fn spawn_enemy(&mut self, enemy: Enemy) {
+        self.enemies.push(Rc::new(RefCell::new(enemy)))
     }
 }
 
@@ -152,15 +161,5 @@ impl<S: Spawner, T: Trajectory> ConcreteGameModel<S, T> {
         self.enemies
             .iter()
             .any(|enemy| enemy.borrow().t_position() > Self::ROAD_LEN)
-    }
-
-    fn maybe_spawn_new_enemy(&mut self) -> bool {
-        match self.spawner.take_spawned() {
-            Some(enemy) => {
-                self.enemies.push(Rc::new(RefCell::new(enemy)));
-                true
-            }
-            None => false,
-        }
     }
 }

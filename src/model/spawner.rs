@@ -9,16 +9,12 @@ use super::{
     enemy::Enemy,
 };
 
-pub trait Spawner: UpdatableObject + Default {
-    fn spawn(&mut self);
-    fn take_spawned(&mut self) -> Option<Enemy>;
-}
+pub trait Spawner: UpdatableObject + Default {}
 
 #[derive(Default)]
 pub struct RandomizedSpawnerWithCooldown {
     cooldown_elapsed: Duration,
     cooldown: Duration,
-    buf: Option<Enemy>,
 }
 
 impl RandomizedSpawnerWithCooldown {
@@ -26,33 +22,26 @@ impl RandomizedSpawnerWithCooldown {
         Self {
             cooldown_elapsed: Duration::from_millis(0),
             cooldown: cooldown,
-            buf: None,
         }
     }
 }
 
 impl UpdatableObject for RandomizedSpawnerWithCooldown {
-    fn on_update(&mut self, _: &mut dyn GameModel, delta_time: Duration) {
+    fn on_update(&mut self, game_model: &mut dyn GameModel, delta_time: Duration) {
         self.cooldown_elapsed += delta_time;
 
         if self.cooldown_elapsed >= self.cooldown {
+            self.spawn(game_model);
             self.cooldown_elapsed = Duration::from_millis(0);
-            self.spawn();
         }
     }
 }
 
-impl Spawner for RandomizedSpawnerWithCooldown {
-    fn spawn(&mut self) {
-        self.buf = Some(Self::produce_enemy());
-    }
-
-    fn take_spawned(&mut self) -> Option<Enemy> {
-        return std::mem::take(&mut self.buf);
-    }
-}
-
 impl RandomizedSpawnerWithCooldown {
+    fn spawn(&self, game_model: &mut dyn GameModel) {
+        game_model.spawn_enemy(Self::produce_enemy())
+    }
+
     fn produce_enemy() -> Enemy {
         const FACTORIES: &[fn() -> Enemy] = &[
             || Enemy::new(&BASIC_ENEMY_INFO),
@@ -62,3 +51,5 @@ impl RandomizedSpawnerWithCooldown {
         (FACTORIES.choose(&mut thread_rng()).unwrap())()
     }
 }
+
+impl Spawner for RandomizedSpawnerWithCooldown {}
