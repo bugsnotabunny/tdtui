@@ -90,7 +90,7 @@ pub struct Screen {
 }
 
 pub trait Drawable {
-    fn draw(&self, frame: &mut Frame, camera: &Camera, game_model: &dyn GameModel);
+    fn draw(&self, frame: &mut Frame, camera: &Camera);
 }
 
 impl Screen {
@@ -126,26 +126,26 @@ impl Screen {
 
     fn draw_impl(frame: &mut Frame, camera: &Camera, game_model: &impl GameModel) {
         let drawable = RoadDrawable::new(game_model.trajectory());
-        drawable.draw(frame, camera, game_model);
+        drawable.draw(frame, camera);
 
         for enemy in game_model.enemies() {
             let borrowed = &enemy.borrow();
             let positioned = EnemyPositioned::new(borrowed, game_model.trajectory());
             let drawable = PosDrawable::new(&positioned);
-            drawable.draw(frame, camera, game_model);
+            drawable.draw(frame, camera);
         }
 
         for tower in game_model.towers() {
             let drawable = PosDrawable::new(tower);
-            drawable.draw(frame, camera, game_model);
+            drawable.draw(frame, camera);
         }
 
         for projectile in game_model.projectiles() {
             let drawable = PosDrawable::new(projectile);
-            drawable.draw(frame, camera, game_model);
+            drawable.draw(frame, camera);
         }
 
-        game_model.selector().draw(frame, camera, game_model);
-        game_model.wallet().draw(frame, camera, game_model)
+        game_model.selector().draw(frame, camera);
+        game_model.wallet().draw(frame, camera)
     }
 }

@@ -4,12 +4,12 @@ use ratatui::{
     Frame,
 };
 
-use crate::model::{core::GameModel, wallet::Wallet};
+use crate::model::wallet::Wallet;
 
 use super::core::{Camera, Drawable};
 
 impl Drawable for Wallet {
-    fn draw(&self, frame: &mut Frame, camera: &Camera, _: &dyn GameModel) {
+    fn draw(&self, frame: &mut Frame, camera: &Camera) {
         let text = format!("Balance: {}$", self.balance());
         let layout = camera.ui_layout().split(frame.size());
 

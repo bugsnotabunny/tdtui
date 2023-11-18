@@ -5,7 +5,7 @@ use ratatui::{
     Frame,
 };
 
-use crate::model::{core::GameModel, trajectory::Trajectory};
+use crate::model::trajectory::Trajectory;
 
 use super::core::{Camera, Drawable};
 
@@ -27,7 +27,7 @@ impl RoadDrawable {
 }
 
 impl Drawable for RoadDrawable {
-    fn draw(&self, frame: &mut Frame, camera: &Camera, _: &dyn GameModel) {
+    fn draw(&self, frame: &mut Frame, camera: &Camera) {
         let datasets = vec![Dataset::default()
             .marker(symbols::Marker::Braille)
             .style(Style::default().fg(Color::Green))

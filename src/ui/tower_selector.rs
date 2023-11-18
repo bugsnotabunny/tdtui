@@ -5,12 +5,12 @@ use ratatui::{
     Frame,
 };
 
-use crate::model::{core::GameModel, tower_selector::TowerSelector};
+use crate::model::tower_selector::TowerSelector;
 
 use super::core::{Camera, Drawable};
 
 impl Drawable for TowerSelector {
-    fn draw(&self, frame: &mut Frame, camera: &Camera, _: &dyn GameModel) {
+    fn draw(&self, frame: &mut Frame, camera: &Camera) {
         let stats = self.current();
 
         let text = vec![

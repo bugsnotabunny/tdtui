@@ -8,7 +8,6 @@ use ratatui::{
 use crate::{
     assets::tower::PROJECTILE_DRAW_INFO,
     model::{
-        core::GameModel,
         enemy::Enemy,
         point::{Point, Positioned},
         tower::{Projectile, Tower},
@@ -41,7 +40,7 @@ impl<'a, T: HasPosDrawInfo> PosDrawable<'a, T> {
 }
 
 impl<'a, T: HasPosDrawInfo> Drawable for PosDrawable<'a, T> {
-    fn draw(&self, frame: &mut Frame, camera: &Camera, _: &dyn GameModel) {
+    fn draw(&self, frame: &mut Frame, camera: &Camera) {
         let frame_w = frame.size().width;
         let frame_h = frame.size().height;
         let self_pos = self.instance.position();
