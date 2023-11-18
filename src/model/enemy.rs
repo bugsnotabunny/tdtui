@@ -53,7 +53,7 @@ impl Enemy {
 }
 
 impl UpdatableObject for Enemy {
-    fn on_update(&mut self, game_model: &mut dyn GameModel, delta_time: Duration) {
+    fn on_update(&mut self, game_model: &mut impl GameModel, delta_time: Duration) {
         self.move_forward(delta_time, game_model.trajectory());
     }
 }

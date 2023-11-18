@@ -27,7 +27,7 @@ impl RandomizedSpawnerWithCooldown {
 }
 
 impl UpdatableObject for RandomizedSpawnerWithCooldown {
-    fn on_update(&mut self, game_model: &mut dyn GameModel, delta_time: Duration) {
+    fn on_update(&mut self, game_model: &mut impl GameModel, delta_time: Duration) {
         self.cooldown_elapsed += delta_time;
 
         if self.cooldown_elapsed >= self.cooldown {
@@ -38,7 +38,7 @@ impl UpdatableObject for RandomizedSpawnerWithCooldown {
 }
 
 impl RandomizedSpawnerWithCooldown {
-    fn spawn(&self, game_model: &mut dyn GameModel) {
+    fn spawn(&self, game_model: &mut impl GameModel) {
         game_model.spawn_enemy(Self::produce_enemy())
     }
 

@@ -30,7 +30,7 @@ pub trait GameModel {
 }
 
 pub trait UpdatableObject {
-    fn on_update(&mut self, game_model: &mut dyn GameModel, delta_time: Duration);
+    fn on_update(&mut self, game_model: &mut impl GameModel, delta_time: Duration);
 }
 
 pub struct ConcreteGameModel<S: Spawner, T: Trajectory> {

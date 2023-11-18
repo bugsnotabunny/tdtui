@@ -104,7 +104,7 @@ impl Positioned for Tower {
 }
 
 impl UpdatableObject for Tower {
-    fn on_update(&mut self, game_model: &mut dyn GameModel, delta_time: Duration) {
+    fn on_update(&mut self, game_model: &mut impl GameModel, delta_time: Duration) {
         self.update_aim(game_model);
         self.cooldown_elapsed += delta_time;
         if self.cooldown_elapsed >= self.type_info.cooldown {
@@ -115,7 +115,7 @@ impl UpdatableObject for Tower {
 }
 
 impl Tower {
-    fn maybe_shoot(&mut self, game_model: &mut dyn GameModel) {
+    fn maybe_shoot(&mut self, game_model: &mut impl GameModel) {
         if !self.aim.is_some() {
             return;
         }
@@ -129,7 +129,7 @@ impl Tower {
         game_model.spawn_projectile(projectile);
     }
 
-    fn update_aim(&mut self, game_model: &dyn GameModel) {
+    fn update_aim(&mut self, game_model: &impl GameModel) {
         if !self.aim.is_in_shoot_range(self, game_model.trajectory()) || !self.aim.is_alive() {
             self.aim = Aim::new(None);
         }
@@ -186,7 +186,7 @@ impl Positioned for Projectile {
 }
 
 impl UpdatableObject for Projectile {
-    fn on_update(&mut self, game_model: &mut dyn GameModel, delta_time: Duration) {
+    fn on_update(&mut self, game_model: &mut impl GameModel, delta_time: Duration) {
         self.move_to_aim(game_model, delta_time);
     }
 }
@@ -196,7 +196,7 @@ impl Projectile {
         self.aim.is_some()
     }
 
-    pub fn move_to_aim(&mut self, game_model: &mut dyn GameModel, delta_time: Duration) {
+    pub fn move_to_aim(&mut self, game_model: &mut impl GameModel, delta_time: Duration) {
         if !self.is_active() {
             return;
         }
@@ -214,7 +214,7 @@ impl Projectile {
         self.position = self.position.clone() + direction * move_points;
     }
 
-    fn on_collision(&mut self, game_model: &mut dyn GameModel) {
+    fn on_collision(&mut self, game_model: &mut impl GameModel) {
         self.aim
             .try_damage(self.type_info.damage.clone(), |reward| {
                 game_model.wallet_mut().add_money(reward);
