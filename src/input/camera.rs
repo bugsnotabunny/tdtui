@@ -2,7 +2,7 @@ use std::{error::Error, fmt::Display};
 
 use crate::ui::core::Camera;
 
-use super::core::{HandleEvent, InputEvent};
+use super::core::{HandleEvent, InputContext, InputEvent};
 
 const SCROLL: f32 = 1.0;
 const SCALE_SCROLL: f32 = 0.1;
@@ -19,7 +19,7 @@ impl Display for CameraScaleInvarianceErr {
 impl Error for CameraScaleInvarianceErr {}
 
 impl HandleEvent for Camera {
-    fn handle(&mut self, event: InputEvent) -> Result<(), Box<dyn Error>> {
+    fn handle(&mut self, event: InputEvent, _: &InputContext) -> Result<(), Box<dyn Error>> {
         match event {
             InputEvent::CameraRight => {
                 let mut pos = self.position().clone();

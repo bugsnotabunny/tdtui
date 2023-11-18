@@ -8,6 +8,36 @@ use ratatui::prelude::Rect;
 
 use crate::{model::point::Point, ui::core::Camera};
 
+use super::tower_selector::TowerSelector;
+
+pub struct InputContext {
+    tower_selector: TowerSelector,
+}
+
+impl InputContext {
+    pub fn new() -> Self {
+        Self {
+            tower_selector: TowerSelector::default(),
+        }
+    }
+
+    pub fn tower_selector(&self) -> &TowerSelector {
+        &self.tower_selector
+    }
+
+    pub fn tower_selector_mut(&mut self) -> &mut TowerSelector {
+        &mut self.tower_selector
+    }
+
+    pub fn handle(&mut self, event: InputEvent) -> Result<(), Box<dyn Error>> {
+        let mut selector = std::mem::take(&mut self.tower_selector);
+        let res = selector.handle(event, self);
+        self.tower_selector = selector;
+        res?;
+        Ok(())
+    }
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct ScreenInfo {
     camera: Camera,
@@ -194,5 +224,9 @@ fn match_mouse_kind(event: MouseEvent, info: ScreenInfo) -> InputEvent {
 }
 
 pub trait HandleEvent {
-    fn handle(&mut self, event: InputEvent) -> Result<(), Box<dyn Error>>;
+    fn handle(
+        &mut self,
+        event: InputEvent,
+        input_context: &InputContext,
+    ) -> Result<(), Box<dyn Error>>;
 }

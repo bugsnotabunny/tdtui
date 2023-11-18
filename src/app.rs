@@ -1,7 +1,7 @@
 use std::{error::Error, io, time::Duration};
 
 use crate::{
-    input::core::{poll_event, HandleEvent, InputEvent, ScreenInfo},
+    input::core::{poll_event, HandleEvent, InputContext, InputEvent, ScreenInfo},
     model::{clock::Clock, core::GameModel},
     ui::core::{Camera, Screen},
 };
@@ -17,6 +17,7 @@ enum AppState {
 
 pub struct App<G: GameModel + HandleEvent> {
     game_model: G,
+    input_context: InputContext,
     screen: Screen,
     camera: Camera,
     update_clock: Clock,
@@ -27,6 +28,7 @@ impl<G: GameModel + HandleEvent> App<G> {
     pub fn new(model: G, ui: Screen) -> Self {
         Self {
             game_model: model,
+            input_context: InputContext::new(),
             screen: ui,
             camera: Camera::default(),
             update_clock: Clock::from_now(),
@@ -66,17 +68,17 @@ impl<G: GameModel + HandleEvent> App<G> {
             let delta_time = self.update_clock.elapsed();
             self.game_model.update(delta_time);
         }
-        self.screen.draw_frame(&self.camera, &self.game_model)?;
+        self.screen
+            .draw_frame(&self.camera, &self.game_model, &self.input_context)?;
         self.update_clock.tick();
         Ok(())
     }
-}
 
-impl<G: GameModel + HandleEvent> HandleEvent for App<G> {
     fn handle(&mut self, event: InputEvent) -> Result<(), Box<dyn Error>> {
         if self.state != AppState::Paused {
-            self.camera.handle(event.clone())?;
-            self.game_model.handle(event.clone())?;
+            self.input_context.handle(event.clone())?;
+            self.camera.handle(event.clone(), &self.input_context)?;
+            self.game_model.handle(event.clone(), &self.input_context)?;
         }
         match event {
             InputEvent::GameQuit => self.state = AppState::Closing,

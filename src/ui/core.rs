@@ -10,7 +10,10 @@ use ratatui::{
     Frame, Terminal,
 };
 
-use crate::model::{core::GameModel, point::Point};
+use crate::{
+    input::core::InputContext,
+    model::{core::GameModel, point::Point},
+};
 
 use super::{
     pos_drawable::{EnemyPositioned, PosDrawable},
@@ -117,14 +120,24 @@ impl Screen {
         self.terminal.size()
     }
 
-    pub fn draw_frame(&mut self, camera: &Camera, game_model: &impl GameModel) -> io::Result<()> {
+    pub fn draw_frame(
+        &mut self,
+        camera: &Camera,
+        game_model: &impl GameModel,
+        input_context: &InputContext,
+    ) -> io::Result<()> {
         self.terminal
-            .draw(|frame| Self::draw_impl(frame, camera, game_model))?;
+            .draw(|frame| Self::draw_impl(frame, camera, game_model, input_context))?;
 
         Ok(())
     }
 
-    fn draw_impl(frame: &mut Frame, camera: &Camera, game_model: &impl GameModel) {
+    fn draw_impl(
+        frame: &mut Frame,
+        camera: &Camera,
+        game_model: &impl GameModel,
+        input_context: &InputContext,
+    ) {
         let drawable = RoadDrawable::new(game_model.trajectory());
         drawable.draw(frame, camera);
 
@@ -145,7 +158,7 @@ impl Screen {
             drawable.draw(frame, camera);
         }
 
-        game_model.selector().draw(frame, camera);
+        input_context.tower_selector().draw(frame, camera);
         game_model.wallet().draw(frame, camera)
     }
 }

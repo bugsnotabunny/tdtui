@@ -2,10 +2,8 @@ use std::{cell::RefCell, rc::Rc, time::Duration};
 
 use super::{
     enemy::Enemy,
-    point::Point,
     spawner::Spawner,
     tower::{Projectile, Tower},
-    tower_selector::TowerSelector,
     trajectory::Trajectory,
     wallet::{NotEnoughMoneyErr, Wallet},
 };
@@ -24,14 +22,11 @@ pub trait GameModel {
     fn projectiles(&self) -> &Vec<Projectile>;
 
     fn spawn_projectile(&mut self, projectile: Projectile);
-    fn spawn_tower(&mut self, tower: Tower);
+    fn spawn_tower(&mut self, tower: Tower) -> Result<(), NotEnoughMoneyErr>;
     fn spawn_enemy(&mut self, enemy: Enemy);
 
     fn wallet(&self) -> &Wallet;
     fn wallet_mut(&mut self) -> &mut Wallet;
-
-    fn selector(&self) -> &TowerSelector;
-    fn selector_mut(&mut self) -> &mut TowerSelector;
 }
 
 pub trait UpdatableObject {
@@ -41,7 +36,6 @@ pub trait UpdatableObject {
 pub struct ConcreteGameModel<S: Spawner, T: Trajectory> {
     trajectory: T,
     spawner: S,
-    tower_selector: TowerSelector,
     towers: Vec<Tower>,
     enemies: Vec<EnemyShared>,
     projectiles: Vec<Projectile>,
@@ -59,23 +53,10 @@ impl<S: Spawner, T: Trajectory> ConcreteGameModel<S, T> {
             towers: Vec::new(),
             enemies: Vec::new(),
             projectiles: Vec::new(),
-            tower_selector: TowerSelector::default(),
             player_wallet: wallet,
             spawner: spawner,
             trajectory: trajectory,
         }
-    }
-
-    pub fn maybe_build_from_selector(&mut self, position: Point) -> Result<(), NotEnoughMoneyErr> {
-        let tower = self.selector().produce_current(position);
-        let cost = tower.cost();
-        self.player_wallet.pay_to_do(cost, || {
-            self.towers.push(tower);
-        })
-    }
-
-    pub fn switch_selector(&mut self) {
-        self.tower_selector.to_next();
     }
 }
 
@@ -107,10 +88,6 @@ impl<S: Spawner, T: Trajectory> GameModel for ConcreteGameModel<S, T> {
         self.spawner = spawner;
     }
 
-    fn selector(&self) -> &TowerSelector {
-        &self.tower_selector
-    }
-
     fn wallet(&self) -> &Wallet {
         &self.player_wallet
     }
@@ -139,16 +116,13 @@ impl<S: Spawner, T: Trajectory> GameModel for ConcreteGameModel<S, T> {
         &mut self.player_wallet
     }
 
-    fn selector_mut(&mut self) -> &mut TowerSelector {
-        &mut self.tower_selector
-    }
-
     fn spawn_projectile(&mut self, projectile: Projectile) {
         self.projectiles.push(projectile)
     }
 
-    fn spawn_tower(&mut self, tower: Tower) {
-        self.towers.push(tower)
+    fn spawn_tower(&mut self, tower: Tower) -> Result<(), NotEnoughMoneyErr> {
+        self.player_wallet
+            .pay_to_do(tower.cost(), || self.towers.push(tower))
     }
 
     fn spawn_enemy(&mut self, enemy: Enemy) {
