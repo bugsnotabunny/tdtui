@@ -1,11 +1,12 @@
-use std::{cell::RefCell, rc::Rc, time::Duration};
+use std::{cell::RefCell, error::Error, fmt::Display, rc::Rc, time::Duration};
 
 use super::{
     enemy::Enemy,
+    point::Positioned,
     spawner::Spawner,
     tower::{Projectile, Tower},
     trajectory::Trajectory,
-    wallet::{NotEnoughMoneyErr, Wallet},
+    wallet::Wallet,
 };
 
 pub type EnemyShared = Rc<RefCell<Enemy>>;
@@ -22,7 +23,7 @@ pub trait GameModel {
     fn projectiles(&self) -> &Vec<Projectile>;
 
     fn spawn_projectile(&mut self, projectile: Projectile);
-    fn spawn_tower(&mut self, tower: Tower) -> Result<(), NotEnoughMoneyErr>;
+    fn spawn_tower(&mut self, tower: Tower) -> Result<(), Box<dyn Error>>;
     fn spawn_enemy(&mut self, enemy: Enemy);
 
     fn wallet(&self) -> &Wallet;
@@ -34,6 +35,7 @@ pub trait UpdatableObject {
 }
 
 pub struct ConcreteGameModel<S: Spawner, T: Trajectory> {
+    min_tower_gap: f32,
     trajectory: T,
     spawner: S,
     towers: Vec<Tower>,
@@ -45,11 +47,12 @@ pub struct ConcreteGameModel<S: Spawner, T: Trajectory> {
 impl<S: Spawner, T: Trajectory> ConcreteGameModel<S, T> {
     const ROAD_LEN: f32 = 100.0;
 
-    pub fn new(spawner: S, trajectory: T, initial_balance: u64) -> Self {
+    pub fn new(spawner: S, trajectory: T, initial_balance: u64, min_tower_gap: f32) -> Self {
         let mut wallet = Wallet::default();
         wallet.add_money(initial_balance);
 
         Self {
+            min_tower_gap,
             towers: Vec::new(),
             enemies: Vec::new(),
             projectiles: Vec::new(),
@@ -57,6 +60,21 @@ impl<S: Spawner, T: Trajectory> ConcreteGameModel<S, T> {
             spawner: spawner,
             trajectory: trajectory,
         }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+struct TooTightTowerPlacementErr {}
+
+impl Display for TooTightTowerPlacementErr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Tried to build tower too close to other tower")
+    }
+}
+
+impl Error for TooTightTowerPlacementErr {
+    fn cause(&self) -> Option<&dyn Error> {
+        None
     }
 }
 
@@ -120,9 +138,18 @@ impl<S: Spawner, T: Trajectory> GameModel for ConcreteGameModel<S, T> {
         self.projectiles.push(projectile)
     }
 
-    fn spawn_tower(&mut self, tower: Tower) -> Result<(), NotEnoughMoneyErr> {
+    fn spawn_tower(&mut self, new_tower: Tower) -> Result<(), Box<dyn Error>> {
+        if self
+            .towers
+            .iter()
+            .any(|tower| tower.position().distance(new_tower.position()) < self.min_tower_gap)
+        {
+            return Err(Box::new(TooTightTowerPlacementErr {}));
+        }
+
         self.player_wallet
-            .pay_to_do(tower.cost(), || self.towers.push(tower))
+            .pay_to_do(new_tower.cost(), || self.towers.push(new_tower))?;
+        Ok(())
     }
 
     fn spawn_enemy(&mut self, enemy: Enemy) {

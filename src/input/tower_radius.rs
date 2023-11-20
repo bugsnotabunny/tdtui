@@ -1,9 +1,6 @@
 use std::error::Error;
 
-use crate::model::{
-    point::{Point, Positioned},
-    tower::TowerInfo,
-};
+use crate::model::point::{Point, Positioned};
 
 use super::core::{HandleEvent, InputContext, InputEvent};
 
