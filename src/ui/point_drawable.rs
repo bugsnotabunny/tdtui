@@ -5,12 +5,11 @@ use ratatui::{
     Frame,
 };
 
+use super::core::{Camera, Drawable};
 use crate::{
     assets::tower::PROJECTILE_DRAW_INFO,
     model::{Enemy, Point, Positioned, Projectile, Tower, Trajectory},
 };
-
-use super::core::{Camera, Drawable};
 
 #[derive(Debug, Clone, Copy)]
 pub struct PointDrawInfo {

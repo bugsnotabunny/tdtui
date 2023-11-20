@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use crate::ui::PointDrawInfo;
+use rand::seq::IteratorRandom;
 
 use super::{
     core::{EnemyShared, GameModel, UpdatableObject},
@@ -8,8 +8,7 @@ use super::{
     point::{Point, Positioned},
     trajectory::Trajectory,
 };
-
-use rand::seq::IteratorRandom;
+use crate::ui::PointDrawInfo;
 
 #[derive(Default, Debug, Clone)]
 struct Aim {

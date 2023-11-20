@@ -1,6 +1,6 @@
-use super::point::Point;
-
 use noise::NoiseFn;
+
+use super::point::Point;
 
 pub trait Trajectory {
     fn point_from_t(&self, t: f32) -> Point;

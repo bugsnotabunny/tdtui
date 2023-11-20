@@ -5,9 +5,8 @@ use ratatui::{
     Frame,
 };
 
-use crate::input::TowerSelector;
-
 use super::core::{Camera, Drawable};
+use crate::input::TowerSelector;
 
 impl Drawable for TowerSelector {
     fn draw(&self, frame: &mut Frame, camera: &Camera) {

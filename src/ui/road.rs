@@ -5,9 +5,8 @@ use ratatui::{
     Frame,
 };
 
-use crate::model::Trajectory;
-
 use super::core::{Camera, Drawable};
+use crate::model::Trajectory;
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct RoadDrawable {

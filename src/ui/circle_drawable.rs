@@ -5,13 +5,12 @@ use ratatui::{
     Frame,
 };
 
+use super::core::{Camera, Drawable};
 use crate::{
     assets::tower_ui::{TOWER_GAP_DRAW_INFO, TOWER_RADIUS_DRAW_INFO},
     input::{TowerGap, TowerRadius},
     model::Positioned,
 };
-
-use super::core::{Camera, Drawable};
 
 #[derive(Debug, Clone, Copy)]
 pub struct CircleDrawInfo {

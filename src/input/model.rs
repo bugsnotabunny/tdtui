@@ -1,10 +1,7 @@
 use std::error::Error;
 
-use crate::model::{GameModel, Spawner, Trajectory};
-
 use super::core::{HandleEvent, InputContext, InputEvent};
-
-use crate::model::ConcreteGameModel;
+use crate::model::{ConcreteGameModel, GameModel, Spawner, Trajectory};
 
 impl<S: Spawner, T: Trajectory> HandleEvent for ConcreteGameModel<S, T> {
     fn handle(

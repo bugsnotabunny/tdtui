@@ -4,9 +4,8 @@ use ratatui::{
     Frame,
 };
 
-use crate::model::Wallet;
-
 use super::core::{Camera, Drawable};
+use crate::model::Wallet;
 
 impl Drawable for Wallet {
     fn draw(&self, frame: &mut Frame, camera: &Camera) {

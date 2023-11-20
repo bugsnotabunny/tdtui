@@ -1,8 +1,7 @@
 use std::error::Error;
 
-use crate::model::{Point, Positioned};
-
 use super::core::{HandleEvent, InputContext, InputEvent};
+use crate::model::{Point, Positioned};
 
 #[derive(Debug, Clone, Copy)]
 pub struct TowerRadius {

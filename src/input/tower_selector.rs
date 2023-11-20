@@ -2,10 +2,11 @@ use std::error::Error;
 
 use super::core::{HandleEvent, InputContext, InputEvent};
 
-use crate::assets::tower::*;
-
-use crate::model::{
-    Point, {Tower, TowerInfo},
+use crate::{
+    assets::tower::{ARCHER_TOWER_INFO, MAGE_TOWER_INFO},
+    model::{
+        Point, {Tower, TowerInfo},
+    },
 };
 
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]

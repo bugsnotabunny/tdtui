@@ -10,15 +10,14 @@ use ratatui::{
     Frame, Terminal,
 };
 
-use crate::{
-    input::InputContext,
-    model::{GameModel, Point, Positioned},
-};
-
 use super::{
     circle_drawable::CircleDrawable,
     point_drawable::{EnemyPositioned, PointDrawable},
     road::RoadDrawable,
+};
+use crate::{
+    input::InputContext,
+    model::{GameModel, Point, Positioned},
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
