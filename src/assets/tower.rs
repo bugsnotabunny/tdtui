@@ -6,11 +6,8 @@ use ratatui::{
 };
 
 use crate::{
-    model::{
-        damage::{Damage, DamageType},
-        tower::{ProjectileInfo, TowerInfo},
-    },
-    ui::point_drawable::PointDrawInfo,
+    model::{Damage, DamageType, ProjectileInfo, TowerInfo},
+    ui::PointDrawInfo,
 };
 
 pub const PROJECTILE_DRAW_INFO: PointDrawInfo = PointDrawInfo {

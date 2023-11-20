@@ -4,8 +4,8 @@ use ratatui::{
 };
 
 use crate::{
-    model::{damage::DamageType, enemy::EnemyInfo},
-    ui::point_drawable::PointDrawInfo,
+    model::{DamageType, EnemyInfo},
+    ui::PointDrawInfo,
 };
 
 pub const COMMON_ENEMY_MARKER: Marker = Marker::HalfBlock;

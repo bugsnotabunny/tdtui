@@ -1,6 +1,6 @@
 use std::{error::Error, fmt::Display};
 
-use crate::{model::point::Positioned, ui::core::Camera};
+use crate::{model::Positioned, ui::Camera};
 
 use super::core::{HandleEvent, InputContext, InputEvent};
 

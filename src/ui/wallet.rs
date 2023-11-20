@@ -4,7 +4,7 @@ use ratatui::{
     Frame,
 };
 
-use crate::model::wallet::Wallet;
+use crate::model::Wallet;
 
 use super::core::{Camera, Drawable};
 

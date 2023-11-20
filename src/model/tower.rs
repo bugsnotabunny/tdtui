@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use crate::ui::point_drawable::PointDrawInfo;
+use crate::ui::PointDrawInfo;
 
 use super::{
     core::{EnemyShared, GameModel, UpdatableObject},

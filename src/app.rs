@@ -1,9 +1,9 @@
 use std::{error::Error, io, time::Duration};
 
 use crate::{
-    input::core::{poll_event, HandleEvent, InputContext, InputEvent, ScreenInfo},
-    model::{clock::Clock, core::GameModel},
-    ui::core::{Camera, Screen},
+    input::{poll_event, HandleEvent, InputContext, InputEvent, ScreenInfo},
+    model::{Clock, GameModel},
+    ui::{Camera, Screen},
 };
 
 #[derive(Debug, PartialEq, Eq)]

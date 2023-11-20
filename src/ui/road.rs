@@ -5,7 +5,7 @@ use ratatui::{
     Frame,
 };
 
-use crate::model::trajectory::Trajectory;
+use crate::model::Trajectory;
 
 use super::core::{Camera, Drawable};
 

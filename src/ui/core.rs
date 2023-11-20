@@ -11,15 +11,12 @@ use ratatui::{
 };
 
 use crate::{
-    input::core::InputContext,
-    model::{
-        core::GameModel,
-        point::{Point, Positioned},
-    },
+    input::InputContext,
+    model::{GameModel, Point, Positioned},
 };
 
 use super::{
-    circle_drawable::{CircleDrawable, HasCircleDrawInfo},
+    circle_drawable::CircleDrawable,
     point_drawable::{EnemyPositioned, PointDrawable},
     road::RoadDrawable,
 };

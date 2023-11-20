@@ -7,8 +7,8 @@ use ratatui::{
 
 use crate::{
     assets::tower_ui::{TOWER_GAP_DRAW_INFO, TOWER_RADIUS_DRAW_INFO},
-    input::{tower_gap::TowerGap, tower_radius::TowerRadius},
-    model::point::Positioned,
+    input::{TowerGap, TowerRadius},
+    model::Positioned,
 };
 
 use super::core::{Camera, Drawable};

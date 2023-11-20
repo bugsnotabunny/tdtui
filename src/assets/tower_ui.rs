@@ -1,6 +1,6 @@
 use ratatui::{style::Color, symbols::Marker::Braille};
 
-use crate::ui::circle_drawable::CircleDrawInfo;
+use crate::ui::CircleDrawInfo;
 
 pub const TOWER_GAP_DRAW_INFO: CircleDrawInfo = CircleDrawInfo {
     marker: Braille,

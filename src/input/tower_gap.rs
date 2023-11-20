@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use crate::model::point::{Point, Positioned};
+use crate::model::{Point, Positioned};
 
 use super::core::{HandleEvent, InputContext, InputEvent};
 

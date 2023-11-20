@@ -7,12 +7,7 @@ use ratatui::{
 
 use crate::{
     assets::tower::PROJECTILE_DRAW_INFO,
-    model::{
-        enemy::Enemy,
-        point::{Point, Positioned},
-        tower::{Projectile, Tower},
-        trajectory::Trajectory,
-    },
+    model::{Enemy, Point, Positioned, Projectile, Tower, Trajectory},
 };
 
 use super::core::{Camera, Drawable};

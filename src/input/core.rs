@@ -7,8 +7,8 @@ use crossterm::event::{
 use ratatui::prelude::Rect;
 
 use crate::{
-    model::point::{Point, Positioned},
-    ui::core::Camera,
+    model::{Point, Positioned},
+    ui::Camera,
 };
 
 use super::{tower_gap::TowerGap, tower_radius::TowerRadius, tower_selector::TowerSelector};

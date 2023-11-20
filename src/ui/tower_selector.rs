@@ -5,7 +5,7 @@ use ratatui::{
     Frame,
 };
 
-use crate::input::tower_selector::TowerSelector;
+use crate::input::TowerSelector;
 
 use super::core::{Camera, Drawable};
 

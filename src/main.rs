@@ -7,12 +7,9 @@ pub mod ui;
 use std::{error::Error, time::Duration};
 
 use app::App;
-use model::{
-    core::ConcreteGameModel, point::Point, spawner::RandomizedSpawnerWithCooldown,
-    trajectory::NoiseTrajectory,
-};
+use model::{ConcreteGameModel, NoiseTrajectory, Point, RandomizedSpawnerWithCooldown};
 use rand::Rng;
-use ui::core::{Camera, Screen};
+use ui::{Camera, Screen};
 
 use noise::Perlin;
 

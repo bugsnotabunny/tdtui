@@ -5,8 +5,7 @@ use super::core::{HandleEvent, InputContext, InputEvent};
 use crate::assets::tower::*;
 
 use crate::model::{
-    point::Point,
-    tower::{Tower, TowerInfo},
+    Point, {Tower, TowerInfo},
 };
 
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
