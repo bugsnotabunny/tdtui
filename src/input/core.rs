@@ -6,10 +6,14 @@ use crossterm::event::{
 };
 use ratatui::prelude::Rect;
 
-use crate::{model::point::Point, ui::core::Camera};
+use crate::{
+    model::point::{Point, Positioned},
+    ui::core::Camera,
+};
 
 use super::{tower_radius::TowerRadius, tower_selector::TowerSelector};
 
+#[derive(Debug, Clone, Copy)]
 pub struct InputContext {
     tower_selector: TowerSelector,
     tower_radius: TowerRadius,
@@ -25,13 +29,13 @@ impl InputContext {
                 frame_h: 0,
                 frame_w: 0,
             },
-            tower_selector: selector.clone(),
+            tower_selector: selector,
             tower_radius: TowerRadius::new(Point { x: 0.0, y: 0.0 }, selector.current()),
         }
     }
 
     pub fn tower_selector(&self) -> TowerSelector {
-        self.tower_selector.clone()
+        self.tower_selector
     }
 
     pub fn set_tower_selector(&mut self, tower_selector: TowerSelector) -> &mut Self {
@@ -40,7 +44,7 @@ impl InputContext {
     }
 
     pub fn screen_info(&self) -> ScreenInfo {
-        self.screen_info.clone()
+        self.screen_info
     }
 
     pub fn set_screen_info(&mut self, screen_info: ScreenInfo) -> &mut Self {
@@ -49,16 +53,16 @@ impl InputContext {
     }
 
     pub fn tower_radius(&self) -> TowerRadius {
-        self.tower_radius.clone()
+        self.tower_radius
     }
 
     pub fn handle(&mut self, event: InputEvent) -> Result<(), Box<dyn Error>> {
         let mut selector = std::mem::take(&mut self.tower_selector);
-        let res = selector.handle(event.clone(), self);
+        let res = selector.handle(event, self);
         self.tower_selector = selector;
         res?;
 
-        let mut radius = self.tower_radius.clone();
+        let mut radius = self.tower_radius;
         radius.handle(event, self)?;
         self.tower_radius = radius;
 
@@ -66,7 +70,7 @@ impl InputContext {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub struct ScreenInfo {
     camera: Camera,
     frame_w: u16,
@@ -105,7 +109,7 @@ impl ScreenInfo {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct MousePos {
     col: u16,
     row: u16,
@@ -131,7 +135,7 @@ impl MousePos {
     }
 }
 
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum InputEvent {
     GameQuit,
     GamePauseSwitch,

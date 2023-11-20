@@ -11,14 +11,14 @@ use super::{
 
 use rand::seq::IteratorRandom;
 
-#[derive(Default)]
+#[derive(Default, Debug, Clone)]
 struct Aim {
     aim: Option<EnemyShared>,
 }
 
 impl Aim {
     pub fn new(aim: Option<EnemyShared>) -> Self {
-        Self { aim: aim.clone() }
+        Self { aim: aim }
     }
 
     pub fn aim(&self) -> &Option<EnemyShared> {
@@ -57,6 +57,7 @@ impl Aim {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct TowerInfo {
     pub cooldown: Duration,
     pub cost: u64,
@@ -67,6 +68,7 @@ pub struct TowerInfo {
     pub draw_info: PosDrawInfo,
 }
 
+#[derive(Debug, Clone)]
 pub struct Tower {
     aim: Aim,
     position: Point,
@@ -99,7 +101,7 @@ impl Tower {
 
 impl Positioned for Tower {
     fn position(&self) -> Point {
-        self.position.clone()
+        self.position
     }
 }
 
@@ -121,7 +123,7 @@ impl Tower {
         }
 
         let projectile = Projectile::new(
-            self.position.clone(),
+            self.position,
             self.aim.aim().as_ref().unwrap().clone(),
             &self.type_info.projectile_info,
         );
@@ -154,11 +156,13 @@ impl Tower {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct ProjectileInfo {
     pub speed: f32,
     pub damage: Damage,
 }
 
+#[derive(Debug, Clone)]
 pub struct Projectile {
     position: Point,
     aim: Aim,
@@ -181,7 +185,7 @@ impl Projectile {
 
 impl Positioned for Projectile {
     fn position(&self) -> Point {
-        self.position.clone()
+        self.position
     }
 }
 
@@ -204,21 +208,20 @@ impl Projectile {
         let trajectory = game_model.trajectory();
         let t = self.aim.aim().as_ref().unwrap().borrow().t_position();
         let aim_pos = trajectory.point_from_t(t);
-        let direction = (aim_pos.clone() - self.position.clone()).normalize();
+        let direction = (aim_pos - self.position).normalize();
         let distance = self.position.distance(aim_pos);
 
         if distance < move_points {
             self.on_collision(game_model);
             return;
         }
-        self.position = self.position.clone() + direction * move_points;
+        self.position = self.position + direction * move_points;
     }
 
     fn on_collision(&mut self, game_model: &mut impl GameModel) {
-        self.aim
-            .try_damage(self.type_info.damage.clone(), |reward| {
-                game_model.wallet_mut().add_money(reward);
-            });
+        self.aim.try_damage(self.type_info.damage, |reward| {
+            game_model.wallet_mut().add_money(reward);
+        });
         self.aim = Aim::new(None);
     }
 }

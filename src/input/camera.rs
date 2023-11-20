@@ -1,13 +1,13 @@
 use std::{error::Error, fmt::Display};
 
-use crate::ui::core::Camera;
+use crate::{model::point::Positioned, ui::core::Camera};
 
 use super::core::{HandleEvent, InputContext, InputEvent};
 
 const SCROLL: f32 = 1.0;
 const SCALE_SCROLL: f32 = 0.1;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct CameraScaleInvarianceErr {}
 
 impl Display for CameraScaleInvarianceErr {
@@ -22,25 +22,25 @@ impl HandleEvent for Camera {
     fn handle(&mut self, event: InputEvent, _: &InputContext) -> Result<(), Box<dyn Error>> {
         match event {
             InputEvent::CameraRight => {
-                let mut pos = self.position().clone();
+                let mut pos = self.position();
                 pos.x += SCROLL;
                 self.set_position(pos);
                 Ok(())
             }
             InputEvent::CameraLeft => {
-                let mut pos = self.position().clone();
+                let mut pos = self.position();
                 pos.x -= SCROLL;
                 self.set_position(pos);
                 Ok(())
             }
             InputEvent::CameraUp => {
-                let mut pos = self.position().clone();
+                let mut pos = self.position();
                 pos.y += SCROLL;
                 self.set_position(pos);
                 Ok(())
             }
             InputEvent::CameraDown => {
-                let mut pos = self.position().clone();
+                let mut pos = self.position();
                 pos.y -= SCROLL;
                 self.set_position(pos);
                 Ok(())

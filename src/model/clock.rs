@@ -1,5 +1,6 @@
 use std::time::{Duration, Instant};
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Clock {
     last_tick: Instant,
 }

@@ -1,11 +1,11 @@
 use std::{error::Error, fmt::Display};
 
-#[derive(Debug, Default, Clone)]
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Wallet {
     balance: u64,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct NotEnoughMoneyErr {}
 
 impl Display for NotEnoughMoneyErr {

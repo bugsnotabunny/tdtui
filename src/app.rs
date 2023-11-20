@@ -51,8 +51,7 @@ impl<G: GameModel + HandleEvent> App<G> {
             while self.update_clock.elapsed() < tick_duration {
                 let timeout = tick_duration.saturating_sub(self.update_clock.elapsed());
 
-                let screen_info =
-                    ScreenInfo::from_frame_size(self.camera.clone(), self.screen.size()?);
+                let screen_info = ScreenInfo::from_frame_size(self.camera, self.screen.size()?);
                 self.input_context.set_screen_info(screen_info);
 
                 let event = poll_event(timeout)?;
@@ -78,11 +77,11 @@ impl<G: GameModel + HandleEvent> App<G> {
     }
 
     fn handle(&mut self, event: InputEvent) -> Result<(), Box<dyn Error>> {
-        self.camera.handle(event.clone(), &self.input_context)?;
-        self.input_context.handle(event.clone())?;
+        self.camera.handle(event, &self.input_context)?;
+        self.input_context.handle(event)?;
 
         if self.state != AppState::Paused {
-            self.game_model.handle(event.clone(), &self.input_context)?;
+            self.game_model.handle(event, &self.input_context)?;
         }
         match event {
             InputEvent::GameQuit => self.state = AppState::Closing,

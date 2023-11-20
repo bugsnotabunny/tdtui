@@ -8,6 +8,7 @@ use super::{
     trajectory::Trajectory,
 };
 
+#[derive(Debug, Clone)]
 pub struct EnemyInfo {
     pub max_health: f32,
     pub speed: f32,
@@ -16,6 +17,7 @@ pub struct EnemyInfo {
     pub draw_info: PosDrawInfo,
 }
 
+#[derive(Debug, Clone, Copy)]
 pub struct Enemy {
     health: f32,
     t_position: f32,

@@ -9,6 +9,7 @@ use crate::model::trajectory::Trajectory;
 
 use super::core::{Camera, Drawable};
 
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct RoadDrawable {
     points: Vec<(f64, f64)>,
 }

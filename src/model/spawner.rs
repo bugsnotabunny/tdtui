@@ -11,7 +11,7 @@ use super::{
 
 pub trait Spawner: UpdatableObject + Default {}
 
-#[derive(Default)]
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct RandomizedSpawnerWithCooldown {
     cooldown_elapsed: Duration,
     cooldown: Duration,

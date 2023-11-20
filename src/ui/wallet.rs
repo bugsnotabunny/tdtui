@@ -15,6 +15,6 @@ impl Drawable for Wallet {
 
         let paragraph = Paragraph::new(text.dark_gray()).wrap(Wrap { trim: true });
         let block = Block::new();
-        frame.render_widget(paragraph.clone().block(block), layout[0]);
+        frame.render_widget(paragraph.block(block), layout[0]);
     }
 }

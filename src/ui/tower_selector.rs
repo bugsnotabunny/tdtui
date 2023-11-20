@@ -26,6 +26,6 @@ impl Drawable for TowerSelector {
 
         let paragraph = Paragraph::new(text).wrap(Wrap { trim: true });
         let block = Block::new();
-        frame.render_widget(paragraph.clone().block(block), layout[1]);
+        frame.render_widget(paragraph.block(block), layout[1]);
     }
 }

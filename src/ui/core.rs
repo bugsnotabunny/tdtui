@@ -12,7 +12,10 @@ use ratatui::{
 
 use crate::{
     input::core::InputContext,
-    model::{core::GameModel, point::Point},
+    model::{
+        core::GameModel,
+        point::{Point, Positioned},
+    },
 };
 
 use super::{
@@ -20,7 +23,7 @@ use super::{
     road::RoadDrawable,
 };
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub struct Camera {
     position: Point,
     critical_scale: f32,
@@ -72,10 +75,6 @@ impl Camera {
         ]
     }
 
-    pub fn position(&self) -> &Point {
-        &self.position
-    }
-
     pub fn set_position(&mut self, position: Point) -> &mut Self {
         self.position = position;
         self
@@ -85,6 +84,12 @@ impl Camera {
         assert!(scale > 0.0);
         self.scale = scale;
         self
+    }
+}
+
+impl Positioned for Camera {
+    fn position(&self) -> Point {
+        self.position
     }
 }
 

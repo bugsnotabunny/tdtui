@@ -6,6 +6,7 @@ pub trait Trajectory {
     fn point_from_t(&self, t: f32) -> Point;
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct NoiseTrajectory<Noise: NoiseFn<f64, 2>> {
     gen: Noise,
 }

@@ -7,7 +7,7 @@ use crate::model::{
 
 use super::core::{HandleEvent, InputContext, InputEvent};
 
-#[derive(Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct TowerRadius {
     position: Point,
     type_info: &'static TowerInfo,
@@ -28,7 +28,7 @@ impl TowerRadius {
 
 impl Positioned for TowerRadius {
     fn position(&self) -> Point {
-        self.position.clone()
+        self.position
     }
 }
 

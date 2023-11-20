@@ -1,12 +1,12 @@
 use std::fmt::Display;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum DamageType {
     Kinnetic,
     Magic,
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub struct Damage {
     pub value: f32,
     pub kind: DamageType,

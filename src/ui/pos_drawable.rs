@@ -17,6 +17,7 @@ use crate::{
 
 use super::core::{Camera, Drawable};
 
+#[derive(Debug, Clone, Copy)]
 pub struct PosDrawInfo {
     pub marker: Marker,
     pub modifiers: Modifier,
@@ -29,6 +30,7 @@ pub trait HasPosDrawInfo: Positioned {
     fn draw_info(&self) -> &'static PosDrawInfo;
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct PosDrawable<'a, T: HasPosDrawInfo> {
     instance: &'a T,
 }
@@ -74,6 +76,7 @@ impl<'a, T: HasPosDrawInfo> Drawable for PosDrawable<'a, T> {
     }
 }
 
+#[derive(Clone, Copy)]
 pub struct EnemyPositioned<'a, 'b> {
     enemy: &'a Enemy,
     trajectory: &'b dyn Trajectory,
