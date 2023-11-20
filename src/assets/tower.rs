@@ -29,7 +29,7 @@ pub const COMMON_TOWER_BG_COLOR: Color = Color::Reset;
 pub const ARCHER_TOWER_INFO: TowerInfo = TowerInfo {
     cooldown: Duration::from_millis(1500),
     cost: 10,
-    range: 50.0,
+    range: 7.0,
     name: "Archer tower",
     description: "",
     projectile_info: ProjectileInfo {
@@ -51,7 +51,7 @@ pub const ARCHER_TOWER_INFO: TowerInfo = TowerInfo {
 pub const MAGE_TOWER_INFO: TowerInfo = TowerInfo {
     cooldown: Duration::from_millis(2000),
     cost: 10,
-    range: 100.0,
+    range: 10.0,
     name: "Mage tower",
     description: "",
     projectile_info: ProjectileInfo {

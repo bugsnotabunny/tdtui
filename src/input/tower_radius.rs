@@ -10,19 +10,19 @@ use super::core::{HandleEvent, InputContext, InputEvent};
 #[derive(Debug, Clone, Copy)]
 pub struct TowerRadius {
     position: Point,
-    type_info: &'static TowerInfo,
+    range: f32,
 }
 
 impl TowerRadius {
-    pub fn new(position: Point, type_info: &'static TowerInfo) -> Self {
+    pub fn new(position: Point, radius: f32) -> Self {
         Self {
             position: position,
-            type_info: type_info,
+            range: radius,
         }
     }
 
-    pub fn radius(&self) -> f32 {
-        self.type_info.range
+    pub fn range(&self) -> f32 {
+        self.range
     }
 }
 
@@ -44,7 +44,7 @@ impl HandleEvent for TowerRadius {
                 Ok(())
             }
             InputEvent::TowerSelectorNext => {
-                self.type_info = input_context.tower_selector().current();
+                self.range = input_context.tower_selector().current().range;
                 Ok(())
             }
             _ => Ok(()),

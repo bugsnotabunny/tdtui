@@ -22,7 +22,7 @@ impl Drawable for TowerRadius {
                 ctx.draw(&Circle {
                     x: position.x as f64,
                     y: position.y as f64,
-                    radius: self.radius() as f64,
+                    radius: self.range() as f64,
                     color: Color::Gray,
                 })
             })

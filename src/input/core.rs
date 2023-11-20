@@ -30,7 +30,7 @@ impl InputContext {
                 frame_w: 0,
             },
             tower_selector: selector,
-            tower_radius: TowerRadius::new(Point { x: 0.0, y: 0.0 }, selector.current()),
+            tower_radius: TowerRadius::new(Point { x: 0.0, y: 0.0 }, selector.current().range),
         }
     }
 
