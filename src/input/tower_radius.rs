@@ -43,6 +43,10 @@ impl HandleEvent for TowerRadius {
                 self.position = pos.to_world_point(input_context.screen_info());
                 Ok(())
             }
+            InputEvent::TowerSelectorNext => {
+                self.type_info = input_context.tower_selector().current();
+                Ok(())
+            }
             _ => Ok(()),
         }
     }
