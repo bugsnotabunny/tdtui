@@ -12,21 +12,37 @@ use super::tower_selector::TowerSelector;
 
 pub struct InputContext {
     tower_selector: TowerSelector,
+    screen_info: ScreenInfo,
 }
 
 impl InputContext {
     pub fn new() -> Self {
         Self {
+            screen_info: ScreenInfo {
+                camera: Camera::default(),
+                frame_h: 0,
+                frame_w: 0,
+            },
             tower_selector: TowerSelector::default(),
         }
     }
 
-    pub fn tower_selector(&self) -> &TowerSelector {
-        &self.tower_selector
+    pub fn tower_selector(&self) -> TowerSelector {
+        self.tower_selector.clone()
     }
 
-    pub fn tower_selector_mut(&mut self) -> &mut TowerSelector {
-        &mut self.tower_selector
+    pub fn set_tower_selector(&mut self, tower_selector: TowerSelector) -> &mut Self {
+        self.tower_selector = tower_selector;
+        self
+    }
+
+    pub fn screen_info(&self) -> ScreenInfo {
+        self.screen_info.clone()
+    }
+
+    pub fn set_screen_info(&mut self, screen_info: ScreenInfo) -> &mut Self {
+        self.screen_info = screen_info;
+        self
     }
 
     pub fn handle(&mut self, event: InputEvent) -> Result<(), Box<dyn Error>> {
@@ -78,29 +94,27 @@ impl ScreenInfo {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct MouseInput {
+pub struct MousePos {
     col: u16,
     row: u16,
-    info: ScreenInfo,
 }
 
-impl MouseInput {
-    pub fn new(event: MouseEvent, info: ScreenInfo) -> Self {
+impl MousePos {
+    pub fn new(event: MouseEvent) -> Self {
         Self {
             col: event.column,
             row: event.row,
-            info: info,
         }
     }
 
-    pub fn to_world_point(&self) -> Point {
-        let percent_x = self.col as f32 / self.info.frame_w as f32;
-        let len_x = self.info.len_x() as f32;
-        let x = self.info.camera().position().x + percent_x * len_x;
+    pub fn to_world_point(&self, info: ScreenInfo) -> Point {
+        let percent_x = self.col as f32 / info.frame_w as f32;
+        let len_x = info.len_x() as f32;
+        let x = info.camera().position().x + percent_x * len_x;
 
-        let percent_y = 1.0 - self.row as f32 / self.info.frame_h as f32;
-        let len_y = self.info.len_y() as f32;
-        let y = self.info.camera().position().y + percent_y * len_y;
+        let percent_y = 1.0 - self.row as f32 / info.frame_h as f32;
+        let len_y = info.len_y() as f32;
+        let y = info.camera().position().y + percent_y * len_y;
         Point { x: x, y: y }
     }
 }
@@ -115,14 +129,14 @@ pub enum InputEvent {
     CameraDown,
     CameraScaleUp,
     CameraScaleDown,
-    MousePressedL(MouseInput),
-    MousePressedR(MouseInput),
+    MousePressedL(MousePos),
+    MousePressedR(MousePos),
     TowerSelectorNext,
     None,
     Unknown,
 }
 
-pub fn poll_event(timeout: Duration, info: ScreenInfo) -> io::Result<InputEvent> {
+pub fn poll_event(timeout: Duration) -> io::Result<InputEvent> {
     if !event::poll(timeout)? {
         return Ok(InputEvent::None);
     }
@@ -134,7 +148,7 @@ pub fn poll_event(timeout: Duration, info: ScreenInfo) -> io::Result<InputEvent>
             }
             Ok(match_key(key))
         }
-        Event::Mouse(mouse) => Ok(match_mouse_kind(mouse, info)),
+        Event::Mouse(mouse) => Ok(match_mouse_kind(mouse)),
         _ => Ok(InputEvent::Unknown),
     }
 }
@@ -208,14 +222,14 @@ fn match_key(key: KeyEvent) -> InputEvent {
     }
 }
 
-fn match_mouse_kind(event: MouseEvent, info: ScreenInfo) -> InputEvent {
+fn match_mouse_kind(event: MouseEvent) -> InputEvent {
     use MouseEventKind::*;
     match event.kind {
         ScrollDown => InputEvent::CameraScaleDown,
         ScrollUp => InputEvent::CameraScaleUp,
         Down(button) => match button {
-            MouseButton::Left => InputEvent::MousePressedL(MouseInput::new(event, info)),
-            MouseButton::Right => InputEvent::MousePressedR(MouseInput::new(event, info)),
+            MouseButton::Left => InputEvent::MousePressedL(MousePos::new(event)),
+            MouseButton::Right => InputEvent::MousePressedR(MousePos::new(event)),
             _ => InputEvent::Unknown,
         },
         _ => InputEvent::Unknown,

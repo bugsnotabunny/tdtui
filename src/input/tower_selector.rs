@@ -9,7 +9,7 @@ use crate::model::{
     tower::{Tower, TowerInfo},
 };
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct TowerSelector {
     idx: usize,
 }

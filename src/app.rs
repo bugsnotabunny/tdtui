@@ -50,9 +50,12 @@ impl<G: GameModel + HandleEvent> App<G> {
         while self.state != AppState::Closing {
             while self.update_clock.elapsed() < tick_duration {
                 let timeout = tick_duration.saturating_sub(self.update_clock.elapsed());
+
                 let screen_info =
                     ScreenInfo::from_frame_size(self.camera.clone(), self.screen.size()?);
-                let event = poll_event(timeout, screen_info)?;
+                self.input_context.set_screen_info(screen_info);
+
+                let event = poll_event(timeout)?;
                 let _ = self.handle(event);
             }
             self.update()?;

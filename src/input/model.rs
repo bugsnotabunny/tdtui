@@ -17,7 +17,7 @@ impl<S: Spawner, T: Trajectory> HandleEvent for ConcreteGameModel<S, T> {
                 self.spawn_tower(
                     input_context
                         .tower_selector()
-                        .produce_current(input.to_world_point()),
+                        .produce_current(input.to_world_point(input_context.screen_info())),
                 )?;
                 Ok(())
             }
