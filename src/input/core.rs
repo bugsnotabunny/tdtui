@@ -25,7 +25,7 @@ impl InputContext {
         let selector = TowerSelector::default();
         Self {
             screen_info: ScreenInfo {
-                camera: Camera::default(),
+                camera: Camera::new(Point::default(), 0.0, 0.0),
                 frame_h: 0,
                 frame_w: 0,
             },

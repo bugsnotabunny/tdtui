@@ -25,12 +25,12 @@ pub struct App<G: GameModel + HandleEvent> {
 }
 
 impl<G: GameModel + HandleEvent> App<G> {
-    pub fn new(model: G, ui: Screen) -> Self {
+    pub fn new(model: G, ui: Screen, camera: Camera) -> Self {
         Self {
             game_model: model,
             input_context: InputContext::new(),
             screen: ui,
-            camera: Camera::default(),
+            camera: camera,
             update_clock: Clock::from_now(),
             state: AppState::NotStarted,
         }

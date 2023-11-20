@@ -8,10 +8,11 @@ use std::{error::Error, time::Duration};
 
 use app::App;
 use model::{
-    core::ConcreteGameModel, spawner::RandomizedSpawnerWithCooldown, trajectory::NoiseTrajectory,
+    core::ConcreteGameModel, point::Point, spawner::RandomizedSpawnerWithCooldown,
+    trajectory::NoiseTrajectory,
 };
 use rand::Rng;
-use ui::core::Screen;
+use ui::core::{Camera, Screen};
 
 use noise::Perlin;
 
@@ -24,9 +25,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     let trajectory = NoiseTrajectory::new(&perlin);
     let model = ConcreteGameModel::new(spawner, trajectory, 1000);
 
+    let camera = Camera::new(Point::default(), 0.3, 1.0);
     let ui = Screen::new()?;
 
-    let mut app = App::new(model, ui);
+    let mut app = App::new(model, ui, camera);
     app.run(tick_duration)?;
     Ok(())
 }

@@ -30,17 +30,15 @@ pub struct Camera {
     scale: f32,
 }
 
-impl Default for Camera {
-    fn default() -> Self {
+impl Camera {
+    pub fn new(position: Point, crotical_scale: f32, scale: f32) -> Self {
         Self {
-            position: Point::default(),
-            critical_scale: 0.3,
-            scale: 1.0,
+            position: position,
+            critical_scale: crotical_scale,
+            scale: scale,
         }
     }
-}
 
-impl Camera {
     pub fn main_layout(&self) -> Layout {
         Layout::default()
             .direction(Direction::Horizontal)
