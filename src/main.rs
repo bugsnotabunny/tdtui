@@ -23,7 +23,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let perlin = Perlin::new(rand::thread_rng().gen());
     let spawner = RandomizedSpawnerWithCooldown::new(Duration::from_secs_f32(1.0));
     let trajectory = NoiseTrajectory::new(&perlin);
-    let model = ConcreteGameModel::new(spawner, trajectory, 1000, 2.0);
+    let model = ConcreteGameModel::new(spawner, trajectory, 1000, 1.0);
 
     let camera = Camera::new(Point::default(), 0.3, 1.0);
     let ui = Screen::new()?;

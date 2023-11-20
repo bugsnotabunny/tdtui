@@ -11,17 +11,18 @@ use crate::{
     ui::core::Camera,
 };
 
-use super::{tower_radius::TowerRadius, tower_selector::TowerSelector};
+use super::{tower_gap::TowerGap, tower_radius::TowerRadius, tower_selector::TowerSelector};
 
 #[derive(Debug, Clone, Copy)]
 pub struct InputContext {
     tower_selector: TowerSelector,
     tower_radius: TowerRadius,
+    tower_gap: TowerGap,
     screen_info: ScreenInfo,
 }
 
 impl InputContext {
-    pub fn new() -> Self {
+    pub fn new(min_tower_gap: f32) -> Self {
         let selector = TowerSelector::default();
         Self {
             screen_info: ScreenInfo {
@@ -31,6 +32,7 @@ impl InputContext {
             },
             tower_selector: selector,
             tower_radius: TowerRadius::new(Point { x: 0.0, y: 0.0 }, selector.current().range),
+            tower_gap: TowerGap::new(Point { x: 0.0, y: 0.0 }, min_tower_gap),
         }
     }
 
@@ -56,15 +58,22 @@ impl InputContext {
         self.tower_radius
     }
 
+    pub fn tower_gap(&self) -> TowerGap {
+        self.tower_gap
+    }
+
     pub fn handle(&mut self, event: InputEvent) -> Result<(), Box<dyn Error>> {
-        let mut selector = std::mem::take(&mut self.tower_selector);
-        let res = selector.handle(event, self);
+        let mut selector = self.tower_selector;
+        selector.handle(event, self)?;
         self.tower_selector = selector;
-        res?;
 
         let mut radius = self.tower_radius;
         radius.handle(event, self)?;
         self.tower_radius = radius;
+
+        let mut gap = self.tower_gap;
+        gap.handle(event, self)?;
+        self.tower_gap = gap;
 
         Ok(())
     }

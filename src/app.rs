@@ -27,8 +27,8 @@ pub struct App<G: GameModel + HandleEvent> {
 impl<G: GameModel + HandleEvent> App<G> {
     pub fn new(model: G, ui: Screen, camera: Camera) -> Self {
         Self {
+            input_context: InputContext::new(model.min_tower_gap()),
             game_model: model,
-            input_context: InputContext::new(),
             screen: ui,
             camera: camera,
             update_clock: Clock::from_now(),

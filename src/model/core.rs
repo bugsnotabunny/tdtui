@@ -26,8 +26,10 @@ pub trait GameModel {
     fn spawn_tower(&mut self, tower: Tower) -> Result<(), Box<dyn Error>>;
     fn spawn_enemy(&mut self, enemy: Enemy);
 
-    fn wallet(&self) -> &Wallet;
+    fn wallet(&self) -> Wallet;
     fn wallet_mut(&mut self) -> &mut Wallet;
+
+    fn min_tower_gap(&self) -> f32;
 }
 
 pub trait UpdatableObject {
@@ -106,8 +108,8 @@ impl<S: Spawner, T: Trajectory> GameModel for ConcreteGameModel<S, T> {
         self.spawner = spawner;
     }
 
-    fn wallet(&self) -> &Wallet {
-        &self.player_wallet
+    fn wallet(&self) -> Wallet {
+        self.player_wallet
     }
 
     fn is_over(&self) -> bool {
@@ -154,6 +156,10 @@ impl<S: Spawner, T: Trajectory> GameModel for ConcreteGameModel<S, T> {
 
     fn spawn_enemy(&mut self, enemy: Enemy) {
         self.enemies.push(Rc::new(RefCell::new(enemy)))
+    }
+
+    fn min_tower_gap(&self) -> f32 {
+        self.min_tower_gap
     }
 }
 

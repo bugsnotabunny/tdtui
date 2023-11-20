@@ -19,6 +19,7 @@ use crate::{
 };
 
 use super::{
+    circle_drawable::{CircleDrawable, HasCircleDrawInfo},
     point_drawable::{EnemyPositioned, PointDrawable},
     road::RoadDrawable,
 };
@@ -163,7 +164,8 @@ impl Screen {
         }
 
         input_context.tower_selector().draw(frame, camera);
-        input_context.tower_radius().draw(frame, camera);
+        CircleDrawable::new(&input_context.tower_radius()).draw(frame, camera);
+        CircleDrawable::new(&input_context.tower_gap()).draw(frame, camera);
 
         game_model.wallet().draw(frame, camera)
     }
