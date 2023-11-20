@@ -61,15 +61,16 @@ impl Camera {
 
     pub fn x_bounds(&self, frame_w: u16) -> [f64; 2] {
         [
-            self.position().x as f64,
-            (self.position().x + frame_w as f32 * self.scale()) as f64,
+            self.position.x as f64,
+            (self.position.x + frame_w as f32 * self.scale) as f64,
         ]
     }
 
     pub fn y_bounds(&self, frame_h: u16) -> [f64; 2] {
+        const PROPORTION_COEF: f64 = 2.0;
         [
-            self.position().y as f64,
-            (self.position().y + frame_h as f32 * self.scale()) as f64,
+            self.position.y as f64,
+            (self.position.y + frame_h as f32 * self.scale) as f64 * PROPORTION_COEF,
         ]
     }
 
