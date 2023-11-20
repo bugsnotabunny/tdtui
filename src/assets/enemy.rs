@@ -5,7 +5,7 @@ use ratatui::{
 
 use crate::{
     model::{damage::DamageType, enemy::EnemyInfo},
-    ui::pos_drawable::PosDrawInfo,
+    ui::point_drawable::PointDrawInfo,
 };
 
 pub const COMMON_ENEMY_MARKER: Marker = Marker::HalfBlock;
@@ -18,7 +18,7 @@ pub const BASIC_ENEMY_INFO: EnemyInfo = EnemyInfo {
     speed: 1.0,
     reward: 3,
     damage_eval: |damage| damage.value,
-    draw_info: PosDrawInfo {
+    draw_info: PointDrawInfo {
         close_up_sprite: Some(""),
         marker: COMMON_ENEMY_MARKER,
         modifiers: COMMON_ENEMY_MODIFIERS,
@@ -38,7 +38,7 @@ pub const KINNETIC_RESIST_ENEMY_INFO: EnemyInfo = EnemyInfo {
         };
         damage.value * coef
     },
-    draw_info: PosDrawInfo {
+    draw_info: PointDrawInfo {
         close_up_sprite: Some("󰟆"),
         marker: COMMON_ENEMY_MARKER,
         modifiers: COMMON_ENEMY_MODIFIERS,
@@ -58,7 +58,7 @@ pub const MAGIC_RESIST_ENEMY_INFO: EnemyInfo = EnemyInfo {
         };
         damage.value * coef
     },
-    draw_info: PosDrawInfo {
+    draw_info: PointDrawInfo {
         close_up_sprite: Some("󰐁"),
         marker: COMMON_ENEMY_MARKER,
         modifiers: COMMON_ENEMY_MODIFIERS,

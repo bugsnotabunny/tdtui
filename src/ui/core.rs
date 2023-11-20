@@ -19,7 +19,7 @@ use crate::{
 };
 
 use super::{
-    pos_drawable::{EnemyPositioned, PosDrawable},
+    point_drawable::{EnemyPositioned, PointDrawable},
     road::RoadDrawable,
 };
 
@@ -148,17 +148,17 @@ impl Screen {
         for enemy in game_model.enemies() {
             let borrowed = &enemy.borrow();
             let positioned = EnemyPositioned::new(borrowed, game_model.trajectory());
-            let drawable = PosDrawable::new(&positioned);
+            let drawable = PointDrawable::new(&positioned);
             drawable.draw(frame, camera);
         }
 
         for tower in game_model.towers() {
-            let drawable = PosDrawable::new(tower);
+            let drawable = PointDrawable::new(tower);
             drawable.draw(frame, camera);
         }
 
         for projectile in game_model.projectiles() {
-            let drawable = PosDrawable::new(projectile);
+            let drawable = PointDrawable::new(projectile);
             drawable.draw(frame, camera);
         }
 

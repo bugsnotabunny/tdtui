@@ -18,7 +18,7 @@ use crate::{
 use super::core::{Camera, Drawable};
 
 #[derive(Debug, Clone, Copy)]
-pub struct PosDrawInfo {
+pub struct PointDrawInfo {
     pub marker: Marker,
     pub modifiers: Modifier,
     pub fg_color: Color,
@@ -26,22 +26,22 @@ pub struct PosDrawInfo {
     pub close_up_sprite: Option<&'static str>,
 }
 
-pub trait HasPosDrawInfo: Positioned {
-    fn draw_info(&self) -> &'static PosDrawInfo;
+pub trait HasPointDrawInfo: Positioned {
+    fn draw_info(&self) -> &'static PointDrawInfo;
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct PosDrawable<'a, T: HasPosDrawInfo> {
+pub struct PointDrawable<'a, T: HasPointDrawInfo> {
     instance: &'a T,
 }
 
-impl<'a, T: HasPosDrawInfo> PosDrawable<'a, T> {
+impl<'a, T: HasPointDrawInfo> PointDrawable<'a, T> {
     pub fn new(instance: &'a T) -> Self {
         Self { instance: instance }
     }
 }
 
-impl<'a, T: HasPosDrawInfo> Drawable for PosDrawable<'a, T> {
+impl<'a, T: HasPointDrawInfo> Drawable for PointDrawable<'a, T> {
     fn draw(&self, frame: &mut Frame, camera: &Camera) {
         let frame_w = frame.size().width;
         let frame_h = frame.size().height;
@@ -97,20 +97,20 @@ impl<'a, 'b> Positioned for EnemyPositioned<'a, 'b> {
     }
 }
 
-impl<'a, 'b> HasPosDrawInfo for EnemyPositioned<'a, 'b> {
-    fn draw_info(&self) -> &'static PosDrawInfo {
+impl<'a, 'b> HasPointDrawInfo for EnemyPositioned<'a, 'b> {
+    fn draw_info(&self) -> &'static PointDrawInfo {
         &self.enemy.type_info().draw_info
     }
 }
 
-impl HasPosDrawInfo for Tower {
-    fn draw_info(&self) -> &'static PosDrawInfo {
+impl HasPointDrawInfo for Tower {
+    fn draw_info(&self) -> &'static PointDrawInfo {
         &self.type_info().draw_info
     }
 }
 
-impl HasPosDrawInfo for Projectile {
-    fn draw_info(&self) -> &'static PosDrawInfo {
+impl HasPointDrawInfo for Projectile {
+    fn draw_info(&self) -> &'static PointDrawInfo {
         &PROJECTILE_DRAW_INFO
     }
 }

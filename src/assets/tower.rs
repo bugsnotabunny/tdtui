@@ -10,10 +10,10 @@ use crate::{
         damage::{Damage, DamageType},
         tower::{ProjectileInfo, TowerInfo},
     },
-    ui::pos_drawable::PosDrawInfo,
+    ui::point_drawable::PointDrawInfo,
 };
 
-pub const PROJECTILE_DRAW_INFO: PosDrawInfo = PosDrawInfo {
+pub const PROJECTILE_DRAW_INFO: PointDrawInfo = PointDrawInfo {
     close_up_sprite: None,
     marker: Marker::Braille,
     modifiers: Modifier::empty(),
@@ -39,7 +39,7 @@ pub const ARCHER_TOWER_INFO: TowerInfo = TowerInfo {
             kind: DamageType::Kinnetic,
         },
     },
-    draw_info: PosDrawInfo {
+    draw_info: PointDrawInfo {
         close_up_sprite: Some(""),
         marker: COMMON_TOWER_MARKER,
         modifiers: COMMON_TOWER_MODIFIERS,
@@ -61,7 +61,7 @@ pub const MAGE_TOWER_INFO: TowerInfo = TowerInfo {
             kind: DamageType::Magic,
         },
     },
-    draw_info: PosDrawInfo {
+    draw_info: PointDrawInfo {
         close_up_sprite: Some(""),
         marker: COMMON_TOWER_MARKER,
         modifiers: COMMON_TOWER_MODIFIERS,

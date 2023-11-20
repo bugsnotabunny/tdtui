@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use crate::ui::pos_drawable::PosDrawInfo;
+use crate::ui::point_drawable::PointDrawInfo;
 
 use super::{
     core::{EnemyShared, GameModel, UpdatableObject},
@@ -65,7 +65,7 @@ pub struct TowerInfo {
     pub name: &'static str,
     pub description: &'static str,
     pub projectile_info: ProjectileInfo,
-    pub draw_info: PosDrawInfo,
+    pub draw_info: PointDrawInfo,
 }
 
 #[derive(Debug, Clone)]
