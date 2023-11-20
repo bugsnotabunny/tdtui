@@ -78,9 +78,10 @@ impl<G: GameModel + HandleEvent> App<G> {
     }
 
     fn handle(&mut self, event: InputEvent) -> Result<(), Box<dyn Error>> {
+        self.camera.handle(event.clone(), &self.input_context)?;
+        self.input_context.handle(event.clone())?;
+
         if self.state != AppState::Paused {
-            self.input_context.handle(event.clone())?;
-            self.camera.handle(event.clone(), &self.input_context)?;
             self.game_model.handle(event.clone(), &self.input_context)?;
         }
         match event {

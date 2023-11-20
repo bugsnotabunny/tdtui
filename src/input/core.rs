@@ -8,22 +8,25 @@ use ratatui::prelude::Rect;
 
 use crate::{model::point::Point, ui::core::Camera};
 
-use super::tower_selector::TowerSelector;
+use super::{tower_radius::TowerRadius, tower_selector::TowerSelector};
 
 pub struct InputContext {
     tower_selector: TowerSelector,
+    tower_radius: TowerRadius,
     screen_info: ScreenInfo,
 }
 
 impl InputContext {
     pub fn new() -> Self {
+        let selector = TowerSelector::default();
         Self {
             screen_info: ScreenInfo {
                 camera: Camera::default(),
                 frame_h: 0,
                 frame_w: 0,
             },
-            tower_selector: TowerSelector::default(),
+            tower_selector: selector.clone(),
+            tower_radius: TowerRadius::new(Point { x: 0.0, y: 0.0 }, selector.current()),
         }
     }
 
@@ -45,11 +48,20 @@ impl InputContext {
         self
     }
 
+    pub fn tower_radius(&self) -> TowerRadius {
+        self.tower_radius.clone()
+    }
+
     pub fn handle(&mut self, event: InputEvent) -> Result<(), Box<dyn Error>> {
         let mut selector = std::mem::take(&mut self.tower_selector);
-        let res = selector.handle(event, self);
+        let res = selector.handle(event.clone(), self);
         self.tower_selector = selector;
         res?;
+
+        let mut radius = self.tower_radius.clone();
+        radius.handle(event, self)?;
+        self.tower_radius = radius;
+
         Ok(())
     }
 }
@@ -129,6 +141,7 @@ pub enum InputEvent {
     CameraDown,
     CameraScaleUp,
     CameraScaleDown,
+    MouseMovedTo(MousePos),
     MousePressedL(MousePos),
     MousePressedR(MousePos),
     TowerSelectorNext,
@@ -227,6 +240,7 @@ fn match_mouse_kind(event: MouseEvent) -> InputEvent {
     match event.kind {
         ScrollDown => InputEvent::CameraScaleDown,
         ScrollUp => InputEvent::CameraScaleUp,
+        Moved => InputEvent::MouseMovedTo(MousePos::new(event)),
         Down(button) => match button {
             MouseButton::Left => InputEvent::MousePressedL(MousePos::new(event)),
             MouseButton::Right => InputEvent::MousePressedR(MousePos::new(event)),

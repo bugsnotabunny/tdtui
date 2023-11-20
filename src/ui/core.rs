@@ -159,6 +159,8 @@ impl Screen {
         }
 
         input_context.tower_selector().draw(frame, camera);
+        input_context.tower_radius().draw(frame, camera);
+
         game_model.wallet().draw(frame, camera)
     }
 }
